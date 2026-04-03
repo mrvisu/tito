@@ -1,179 +1,779 @@
-import React, { useState } from 'react';
-import { Camera, Video, Image as ImageIcon, Gift, Star, CheckCircle2, Phone, MapPin, Instagram, MessageCircle, Settings, Pencil, Trash2, Plus, X, User, CalendarDays, Sparkles, Building2, Map, Smartphone, Wallet, CreditCard, Copy, Flame, Megaphone, ArrowLeft, Upload, ImagePlus } from 'lucide-react';
-
-// بيانات الافتراضية
-const initialData = {
-  // الإعلان الخاص (العرض)
-  promo: {
-    id: 'promo',
-    isActive: true,
-    title: "🔥 عرض الموسم الشامل 🔥",
-    desc: "تغطية كاملة (فوتوغرافيا + فيديو سينمائي 4K + ألبوم ديجيتال + تابلوه خشب كبير) بخصم جبار لفترة محدودة جداً!",
-    price: "12,000",
-    oldPrice: "18,500",
-    image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1200&auto=format&fit=crop",
-    link: "https://wa.me/201201260040?text=مرحباً، أريد الاستفسار عن عرض الموسم الشامل"
-  },
-  photography: [
-    {
-      id: 1,
-      name: "الباقة الفضية",
-      price: "5,000",
-      images: [
-        "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=400&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=400&auto=format&fit=crop"
-      ],
-      features: [
-        "تصوير قاعة الفرح فقط",
-        "تعديل (Edit) لعدد 50 صورة",
-        "ألبوم كلاسيك مقاس 20x30",
-        "تسليم جميع الصور على فلاش ميموري"
-      ]
-    },
-    {
-      id: 2,
-      name: "الباقة الذهبية",
-      price: "8,500",
-      isPopular: true,
-      images: [
-        "https://images.unsplash.com/photo-1583939000140-6218d6e38cce?q=80&w=800&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1532712938736-59b158097d74?q=80&w=400&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1606216794074-735e91aff2ba?q=80&w=400&auto=format&fit=crop"
-      ],
-      features: [
-        "تصوير سيشن خارجي + قاعة الفرح",
-        "تعديل (Edit) لعدد 100 صورة",
-        "ألبوم ديجيتال فاخر مقاس 30x40",
-        "ميني ألبوم كهدية للوالدين",
-        "بوستر خشبي لاستقبال الضيوف"
-      ]
-    },
-    {
-      id: 3,
-      name: "الباقة الماسية",
-      price: "13,000",
-      images: [
-        "https://images.unsplash.com/photo-1542042161784-26ab9e041e89?q=80&w=800&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=400&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=400&auto=format&fit=crop"
-      ],
-      features: [
-        "تغطية اليوم كامل (تجهيزات، سيشن، قاعة)",
-        "تعديل احترافي لعدد 200 صورة",
-        "ألبوم ديجيتال VIP مقاس 30x40",
-        "2 ميني ألبوم للوالدين",
-        "تابلوه خشب كبير مقاس 50x70"
-      ]
-    }
-  ],
-  video: [
-    {
-      id: 4,
-      name: "التصوير الأساسي",
-      price: "4,000",
-      images: [
-        "https://images.unsplash.com/photo-1601506521937-0121a7fc2a6b?q=80&w=800&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1527011045970-00109db8935c?q=80&w=400&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=400&auto=format&fit=crop"
-      ],
-      features: [
-        "كاميرا فيديو واحدة (Full HD)",
-        "تغطية القاعة فقط",
-        "مونتاج كامل للفرح",
-        "تسليم على فلاشة"
-      ]
-    },
-    {
-      id: 5,
-      name: "التصوير السينمائي",
-      price: "9,000",
-      isPopular: true,
-      images: [
-        "https://images.unsplash.com/photo-1589087394126-9a2fc487e22f?q=80&w=800&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1579601334641-f6a5b672cb7f?q=80&w=400&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1536240478700-b869070f9279?q=80&w=400&auto=format&fit=crop"
-      ],
-      features: [
-        "2 كاميرا تصوير سينمائي (4K)",
-        "تصوير لقطات درون (Drone)",
-        "فيديو هايلايتس دقيقة للسوشيال ميديا",
-        "فيلم سينمائي 30 دقيقة يحكي قصة اليوم"
-      ]
-    }
-  ],
-  tableaus: [
-    { id: 6, name: "تابلوه خشب كلاسيك", desc: "50x70 سم - خشب مستورد", price: "600", images: ["https://images.unsplash.com/photo-1544457070-4cd773b4d71e?q=80&w=800&auto=format&fit=crop"] },
-    { id: 7, name: "تابلوه كانفاس فاخر", desc: "60x90 سم - طباعة عالية الجودة", price: "950", images: ["https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop"] },
-  ],
-  gifts: [
-    { id: 8, name: "كتاب الزوار (Guestbook)", desc: "بتصميم خشبي محفور باسم العرسان", price: "400", images: ["https://images.unsplash.com/photo-1517457210165-27a3c333a5da?q=80&w=800&auto=format&fit=crop"] },
-    { id: 9, name: "تصوير فوري (Polaroid)", desc: "50 صورة توزع للضيوف أثناء الفرح", price: "1,500", images: ["https://images.unsplash.com/photo-1526304760382-3591d3840148?q=80&w=800&auto=format&fit=crop"] },
-  ]
-};
-
-export default function App() {
-  const [activeTab, setActiveTab] = useState('photography');
-  const [menuData, setMenuData] = useState(initialData);
-  const [isEditMode, setIsEditMode] = useState(false);
-  
-  // Modals State
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
-  const [selectedPackageForBooking, setSelectedPackageForBooking] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState(null);
-  const [formImages, setFormImages] = useState([]);
-  const [promoImage, setPromoImage] = useState('');
-  const [tempImageUrl, setTempImageUrl] = useState('');
-  
-  // Copy to clipboard helper
-  const copyToClipboard = (text) => {
-    navigator.clipboard.writeText(text);
-    alert(`تم نسخ الرقم: ${text}`);
-  };
-
-  // WhatsApp Booking Submit
-  const handleBookingSubmit = (e, itemName) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const payment = formData.get('payment');
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LENS & LIGHT - Photography Studio</title>
     
-    let paymentText = "لم يحدد";
-    if (payment === 'vodafone') paymentText = "فودافون كاش";
-    if (payment === 'instapay') paymentText = "إنستاباي";
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts: Tajawal -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap" rel="stylesheet">
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 
-    let message = "";
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Tajawal', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
-    // رسالة مختلفة لقسم الفيديو
-    if (activeTab === 'video') {
-        const customerName = formData.get('customerName');
-        const date = formData.get('date');
-        const location = formData.get('location');
-        const phone = formData.get('phone');
+    <style>
+        body {
+            font-family: 'Tajawal', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f43f5e; }
+        
+        /* Utility classes that Tailwind handles dynamically in React but need explicit definition here if not used initially */
+        .tab-active-photography { @apply bg-gradient-to-br from-amber-400 to-orange-500 text-white border-transparent shadow-lg shadow-orange-500/40 scale-105 z-10; }
+        .tab-inactive-photography { @apply bg-orange-50/60 border-orange-200/60 text-orange-600 hover:bg-orange-100 hover:border-orange-300 hover:shadow-md; }
+        
+        .tab-active-video { @apply bg-gradient-to-br from-blue-400 to-cyan-500 text-white border-transparent shadow-lg shadow-cyan-500/40 scale-105 z-10; }
+        .tab-inactive-video { @apply bg-blue-50/60 border-blue-200/60 text-blue-600 hover:bg-blue-100 hover:border-blue-300 hover:shadow-md; }
+        
+        .tab-active-tableaus { @apply bg-gradient-to-br from-fuchsia-400 to-pink-500 text-white border-transparent shadow-lg shadow-pink-500/40 scale-105 z-10; }
+        .tab-inactive-tableaus { @apply bg-pink-50/60 border-pink-200/60 text-pink-600 hover:bg-pink-100 hover:border-pink-300 hover:shadow-md; }
+        
+        .tab-active-gifts { @apply bg-gradient-to-br from-emerald-400 to-teal-500 text-white border-transparent shadow-lg shadow-teal-500/40 scale-105 z-10; }
+        .tab-inactive-gifts { @apply bg-emerald-50/60 border-emerald-200/60 text-emerald-600 hover:bg-emerald-100 hover:border-emerald-300 hover:shadow-md; }
+    </style>
+</head>
+<body class="min-h-screen selection:bg-rose-400 selection:text-white pb-20 bg-[#fdfbf7] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-50 via-orange-50 to-amber-50 text-stone-800 transition-colors duration-500">
 
-        message = `مرحباً، أريد الاستفسار وحجز: *${itemName}* (قسم الفيديو)
+    <!-- Header -->
+    <header class="bg-white/50 backdrop-blur-xl border-b border-white/60 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="text-center md:text-right">
+                <h1 class="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent tracking-wider">LENS & LIGHT</h1>
+                <p class="text-xs text-stone-500 mt-1 uppercase tracking-widest font-bold">Photography Studio</p>
+            </div>
+            
+            <button id="toggleEditBtn" onclick="toggleEditMode()" class="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all bg-white/80 text-stone-600 border border-stone-200 hover:text-rose-600 hover:bg-white shadow-sm">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                <span id="editBtnText">تعديل المينيو</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-5xl mx-auto px-4 py-6 md:py-10">
+        
+        <!-- Promo Banner Container -->
+        <div id="promoContainer"></div>
+
+        <!-- Title Section & Tabs -->
+        <div class="text-center mb-10 flex justify-center items-center flex-col relative">
+            <h2 class="text-3xl md:text-5xl font-black text-stone-800 mb-6 tracking-tight">استكشف باقاتنا</h2>
+            
+            <!-- Tabs -->
+            <div class="w-full max-w-3xl mx-auto bg-white/40 p-2 rounded-[2rem] backdrop-blur-xl border border-white shadow-xl mb-8">
+                <nav class="flex justify-start md:justify-center gap-2 md:gap-3 overflow-x-auto hide-scrollbar snap-x pb-1 md:pb-0">
+                    <button onclick="changeTab('photography')" id="tab-photography" class="tab-btn tab-active-photography flex flex-col items-center justify-center gap-1 md:gap-1.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 min-w-[100px] md:min-w-[120px] snap-center border">
+                        <i data-lucide="camera" class="w-5 h-5 mb-1"></i> <span>باقات الزفاف</span>
+                    </button>
+                    <button onclick="changeTab('video')" id="tab-video" class="tab-btn tab-inactive-video flex flex-col items-center justify-center gap-1 md:gap-1.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 min-w-[100px] md:min-w-[120px] snap-center border">
+                        <i data-lucide="video" class="w-5 h-5 mb-1"></i> <span>الفيديو والسينما</span>
+                    </button>
+                    <button onclick="changeTab('tableaus')" id="tab-tableaus" class="tab-btn tab-inactive-tableaus flex flex-col items-center justify-center gap-1 md:gap-1.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 min-w-[100px] md:min-w-[120px] snap-center border">
+                        <i data-lucide="image" class="w-5 h-5 mb-1"></i> <span>التابلوهات</span>
+                    </button>
+                    <button onclick="changeTab('gifts')" id="tab-gifts" class="tab-btn tab-inactive-gifts flex flex-col items-center justify-center gap-1 md:gap-1.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 min-w-[100px] md:min-w-[120px] snap-center border">
+                        <i data-lucide="gift" class="w-5 h-5 mb-1"></i> <span>الهدايا</span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Add New Item Button (Edit Mode Only) -->
+            <button id="addBtn" onclick="openEditModal(null)" class="hidden flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white px-6 py-3 rounded-full font-bold transition-all shadow-lg shadow-green-500/30">
+                <i data-lucide="plus" class="w-5 h-5"></i> إضافة عنصر جديد
+            </button>
+        </div>
+
+        <!-- Items Container -->
+        <div id="itemsContainer" class="animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <!-- Items will be rendered here by JS -->
+        </div>
+
+    </main>
+
+    <!-- Booking Details Modal -->
+    <div id="bookingModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-md overflow-y-auto custom-scrollbar">
+        <div class="relative bg-white/95 backdrop-blur-2xl border border-white rounded-[2rem] w-full max-w-4xl overflow-hidden shadow-2xl my-8 flex flex-col md:flex-row m-auto">
+            
+            <button onclick="closeBookingModal()" class="absolute top-4 left-4 z-50 p-2.5 bg-stone-100/90 backdrop-blur hover:bg-rose-100 rounded-full text-stone-600 hover:text-rose-600 transition-all shadow-sm">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <!-- Right Side: Package Details -->
+            <div class="md:w-5/12 bg-rose-50/50 p-6 md:p-8 pt-16 flex flex-col border-b md:border-b-0 md:border-l border-rose-100">
+                <div class="mb-6">
+                    <h3 id="bm-title" class="text-3xl font-black text-stone-900 mb-2"></h3>
+                    <div class="flex items-end gap-1">
+                        <span id="bm-price" class="text-4xl font-black text-rose-500"></span>
+                        <span class="text-stone-500 mb-1 font-bold">ج.م</span>
+                    </div>
+                </div>
+
+                <div class="flex-1">
+                    <h4 class="text-rose-400 font-bold mb-4 text-sm uppercase tracking-widest">مميزات الباقة</h4>
+                    <ul id="bm-features" class="space-y-4">
+                        <!-- Features inserted here -->
+                    </ul>
+                </div>
+
+                <div id="bm-image-container" class="mt-8 h-32 rounded-2xl overflow-hidden relative shadow-inner hidden">
+                    <img id="bm-image" src="" alt="cover" class="w-full h-full object-cover" />
+                </div>
+            </div>
+
+            <!-- Left Side: Booking Form -->
+            <div class="md:w-7/12 p-6 md:p-8 pt-16 relative bg-white">
+                <div class="mb-6">
+                    <h3 class="text-xl font-bold text-stone-900 flex items-center gap-2">
+                        <i data-lucide="calendar-days" class="w-6 h-6 text-rose-500"></i> نموذج استكمال الحجز
+                    </h3>
+                    <p id="bm-desc" class="text-sm text-stone-500 mt-2 font-medium">يرجى تعبئة البيانات وتحديد وسيلة الدفع لتأكيد الحجز.</p>
+                </div>
+
+                <form id="bookingForm" onsubmit="submitBooking(event)" class="space-y-4">
+                    <input type="hidden" id="bm-item-name" name="itemName">
+                    <div id="dynamicFormFields">
+                        <!-- Form fields inserted here based on tab -->
+                    </div>
+
+                    <!-- Payment Methods -->
+                    <div class="pt-4 mt-4 border-t border-stone-100">
+                        <label class="block text-stone-900 text-sm font-bold mb-3">طريقة دفع العربون (لتأكيد الحجز)</label>
+                        <div class="flex gap-3">
+                            <label class="flex-1 cursor-pointer relative">
+                                <input type="radio" name="payment" value="vodafone" required class="peer sr-only" onchange="handlePaymentChange('vodafone')" />
+                                <div class="p-3 bg-stone-50 border-2 border-transparent peer-checked:border-red-500 peer-checked:bg-red-50/50 rounded-2xl flex flex-col items-center gap-2 shadow-sm transition-all text-center hover:bg-stone-100">
+                                    <i data-lucide="wallet" class="w-6 h-6 text-red-500"></i>
+                                    <span class="text-xs font-bold text-stone-700">فودافون كاش</span>
+                                </div>
+                            </label>
+                            <label class="flex-1 cursor-pointer relative">
+                                <input type="radio" name="payment" value="instapay" required class="peer sr-only" onchange="handlePaymentChange('instapay')" />
+                                <div class="p-3 bg-stone-50 border-2 border-transparent peer-checked:border-purple-600 peer-checked:bg-purple-50/50 rounded-2xl flex flex-col items-center gap-2 shadow-sm transition-all text-center hover:bg-stone-100">
+                                    <i data-lucide="credit-card" class="w-6 h-6 text-purple-600"></i>
+                                    <span class="text-xs font-bold text-stone-700">إنستاباي</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Payment Details -->
+                        <div id="paymentDetails" class="hidden mt-3"></div>
+                    </div>
+
+                    <!-- Important Notes -->
+                    <div class="mt-5 bg-amber-50/50 border border-amber-200/60 rounded-2xl p-4 flex gap-3 items-start">
+                        <div class="bg-amber-100 p-2 rounded-xl text-amber-600 shrink-0">
+                            <i data-lucide="info" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-amber-800 font-bold text-sm mb-1.5">ملاحظات هامة لتأكيد الحجز:</h4>
+                            <ul class="text-amber-700/80 text-xs space-y-2 font-medium">
+                                <li class="flex items-start gap-1.5">
+                                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 shrink-0"></i> 
+                                    <span>تأكيد الحجز وتثبيت الموعد يتطلب دفع مبلغ عربون مقدماً.</span>
+                                </li>
+                                <li class="flex items-start gap-1.5">
+                                    <i data-lucide="check-circle-2" class="w-3.5 h-3.5 mt-0.5 shrink-0"></i> 
+                                    <span>رسوم تذكرة دخول مكان التصوير (الأرضية) غير شاملة في الباقة وتكون على نفقة العميل.</span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="pt-5 mt-5 border-t border-stone-100">
+                        <button type="submit" class="w-full py-3 md:py-4 rounded-xl text-sm md:text-base font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/40 transform hover:-translate-y-1">
+                            <i data-lucide="message-circle" class="w-6 h-6"></i>
+                            تأكيد الحجز وإرسال عبر واتساب
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Modal (Backend) -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm">
+        <div class="bg-white border border-white rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl m-auto">
+            <div class="flex justify-between items-center p-5 border-b border-stone-100 bg-stone-50/50">
+                <h3 id="em-title" class="text-xl font-bold text-stone-900">تعديل العنصر</h3>
+                <button onclick="closeEditModal()" class="text-stone-400 hover:text-stone-600 bg-white p-2 rounded-full shadow-sm">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form id="editForm" onsubmit="handleSaveEdit(event)" class="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
+                <input type="hidden" id="em-id" name="id">
+                <input type="hidden" id="em-type" name="type"> <!-- 'promo' or 'item' -->
+
+                <div id="em-dynamic-fields">
+                    <!-- Edit fields inserted here based on item type -->
+                </div>
+
+                <div class="pt-6 flex gap-3 border-t border-stone-100 mt-6">
+                    <button type="submit" class="flex-1 bg-stone-900 hover:bg-stone-800 text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-stone-900/20">حفظ البيانات</button>
+                    <button type="button" onclick="closeEditModal()" class="px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-xl font-bold transition-colors">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript logic -->
+    <script>
+        // Initial Data
+        let menuData = {
+            promo: {
+                id: 'promo',
+                isActive: true,
+                title: "🔥 عرض الموسم الشامل 🔥",
+                desc: "تغطية كاملة (فوتوغرافيا + فيديو سينمائي 4K + ألبوم ديجيتال + تابلوه خشب كبير) بخصم جبار لفترة محدودة جداً!",
+                price: "12,000",
+                oldPrice: "18,500",
+                image: "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=1200&auto=format&fit=crop",
+                link: "https://wa.me/201201260040?text=مرحباً، أريد الاستفسار عن عرض الموسم الشامل"
+            },
+            photography: [
+                {
+                    id: 1,
+                    name: "الباقة الفضية",
+                    price: "5,000",
+                    images: [
+                        "https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=800&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1511285560929-80b456fea0bc?q=80&w=400&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1606800052052-a08af7148866?q=80&w=400&auto=format&fit=crop"
+                    ],
+                    features: ["تصوير قاعة الفرح فقط", "تعديل (Edit) لعدد 50 صورة", "ألبوم كلاسيك مقاس 20x30", "تسليم جميع الصور على فلاش ميموري"]
+                },
+                {
+                    id: 2,
+                    name: "الباقة الذهبية",
+                    price: "8,500",
+                    isPopular: true,
+                    images: [
+                        "https://images.unsplash.com/photo-1583939000140-6218d6e38cce?q=80&w=800&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1532712938736-59b158097d74?q=80&w=400&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1606216794074-735e91aff2ba?q=80&w=400&auto=format&fit=crop"
+                    ],
+                    features: ["تصوير سيشن خارجي + قاعة الفرح", "تعديل (Edit) لعدد 100 صورة", "ألبوم ديجيتال فاخر مقاس 30x40", "ميني ألبوم كهدية للوالدين", "بوستر خشبي لاستقبال الضيوف"]
+                },
+                {
+                    id: 3,
+                    name: "الباقة الماسية",
+                    price: "13,000",
+                    images: [
+                        "https://images.unsplash.com/photo-1542042161784-26ab9e041e89?q=80&w=800&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1520854221256-17451cc331bf?q=80&w=400&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1469334031218-e382a71b716b?q=80&w=400&auto=format&fit=crop"
+                    ],
+                    features: ["تغطية اليوم كامل (تجهيزات، سيشن، قاعة)", "تعديل احترافي لعدد 200 صورة", "ألبوم ديجيتال VIP مقاس 30x40", "2 ميني ألبوم للوالدين", "تابلوه خشب كبير مقاس 50x70"]
+                }
+            ],
+            video: [
+                {
+                    id: 4,
+                    name: "التصوير الأساسي",
+                    price: "4,000",
+                    images: [
+                        "https://images.unsplash.com/photo-1601506521937-0121a7fc2a6b?q=80&w=800&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1527011045970-00109db8935c?q=80&w=400&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?q=80&w=400&auto=format&fit=crop"
+                    ],
+                    features: ["كاميرا فيديو واحدة (Full HD)", "تغطية القاعة فقط", "مونتاج كامل للفرح", "تسليم على فلاشة"]
+                },
+                {
+                    id: 5,
+                    name: "التصوير السينمائي",
+                    price: "9,000",
+                    isPopular: true,
+                    images: [
+                        "https://images.unsplash.com/photo-1589087394126-9a2fc487e22f?q=80&w=800&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1579601334641-f6a5b672cb7f?q=80&w=400&auto=format&fit=crop",
+                        "https://images.unsplash.com/photo-1536240478700-b869070f9279?q=80&w=400&auto=format&fit=crop"
+                    ],
+                    features: ["2 كاميرا تصوير سينمائي (4K)", "تصوير لقطات درون (Drone)", "فيديو هايلايتس دقيقة للسوشيال ميديا", "فيلم سينمائي 30 دقيقة يحكي قصة اليوم"]
+                }
+            ],
+            tableaus: [
+                { id: 6, name: "تابلوه خشب كلاسيك", desc: "50x70 سم - خشب مستورد", price: "600", images: ["https://images.unsplash.com/photo-1544457070-4cd773b4d71e?q=80&w=800&auto=format&fit=crop"] },
+                { id: 7, name: "تابلوه كانفاس فاخر", desc: "60x90 سم - طباعة عالية الجودة", price: "950", images: ["https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800&auto=format&fit=crop"] },
+            ],
+            gifts: [
+                { id: 8, name: "كتاب الزوار (Guestbook)", desc: "بتصميم خشبي محفور باسم العرسان", price: "400", images: ["https://images.unsplash.com/photo-1517457210165-27a3c333a5da?q=80&w=800&auto=format&fit=crop"] },
+                { id: 9, name: "تصوير فوري (Polaroid)", desc: "50 صورة توزع للضيوف أثناء الفرح", price: "1,500", images: ["https://images.unsplash.com/photo-1526304760382-3591d3840148?q=80&w=800&auto=format&fit=crop"] },
+            ]
+        };
+
+        let activeTab = 'photography';
+        let isEditMode = false;
+        let formImages = [];
+        let promoImage = '';
+
+        // Initialize App
+        function initApp() {
+            renderPromo();
+            renderItems();
+            updateIcons();
+        }
+
+        function updateIcons() {
+            lucide.createIcons();
+        }
+
+        // Edit Mode Toggle
+        function toggleEditMode() {
+            isEditMode = !isEditMode;
+            const btn = document.getElementById('toggleEditBtn');
+            const text = document.getElementById('editBtnText');
+            const addBtn = document.getElementById('addBtn');
+
+            if (isEditMode) {
+                btn.className = "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all bg-red-500 text-white shadow-lg shadow-red-500/30";
+                text.innerText = "إغلاق وضع التعديل";
+                addBtn.classList.remove('hidden');
+            } else {
+                btn.className = "flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all bg-white/80 text-stone-600 border border-stone-200 hover:text-rose-600 hover:bg-white shadow-sm";
+                text.innerText = "تعديل المينيو";
+                addBtn.classList.add('hidden');
+            }
+            renderPromo();
+            renderItems();
+        }
+
+        // Tab Management
+        function changeTab(tabName) {
+            activeTab = tabName;
+            
+            // Reset all tabs to their specific inactive states
+            const tabs = ['photography', 'video', 'tableaus', 'gifts'];
+            const baseClass = "tab-btn flex flex-col items-center justify-center gap-1 md:gap-1.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 min-w-[100px] md:min-w-[120px] snap-center border";
+            
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                if (t === tabName) {
+                    el.className = `${baseClass} tab-active-${t}`;
+                } else {
+                    el.className = `${baseClass} tab-inactive-${t}`;
+                }
+            });
+
+            renderItems();
+        }
+
+        // Render Promo
+        function renderPromo() {
+            const container = document.getElementById('promoContainer');
+            if (!menuData.promo || !menuData.promo.isActive) {
+                container.innerHTML = '';
+                return;
+            }
+
+            const promo = menuData.promo;
+            let editBtnHTML = '';
+            
+            if (isEditMode) {
+                editBtnHTML = `
+                    <button onclick="openEditModal('promo')" class="absolute top-4 right-4 z-30 p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-lg transition-all">
+                        <i data-lucide="pencil" class="w-5 h-5"></i>
+                    </button>
+                `;
+            }
+
+            container.innerHTML = `
+                <div class="relative w-full rounded-[2rem] overflow-hidden shadow-2xl mb-12 group bg-gradient-to-br from-rose-600 via-pink-600 to-purple-700 text-white">
+                    ${editBtnHTML}
+                    <div class="flex flex-col md:flex-row">
+                        <div class="md:w-5/12 h-64 md:h-auto relative overflow-hidden order-2 md:order-1">
+                            <img src="${promo.image}" alt="عرض خاص" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            <div class="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-rose-900/80 via-transparent to-transparent"></div>
+                        </div>
+                        <div class="md:w-7/12 p-8 md:p-12 flex flex-col justify-center relative order-1 md:order-2">
+                            <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                            
+                            <div class="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full w-max text-sm font-bold mb-4 border border-white/30">
+                                <i data-lucide="flame" class="w-4 h-4 text-amber-300"></i> عرض خاص جداً
+                            </div>
+                            
+                            <h2 class="text-3xl md:text-5xl font-black mb-4 leading-tight">${promo.title}</h2>
+                            <p class="text-rose-100 text-lg mb-8 leading-relaxed font-medium">${promo.desc}</p>
+                            
+                            <div class="flex flex-wrap items-center justify-between gap-6">
+                                <div class="flex items-center gap-4">
+                                    <span class="text-5xl font-black text-amber-300">${promo.price}</span>
+                                    <div class="flex flex-col">
+                                        <span class="text-rose-200 font-bold line-through text-lg">${promo.oldPrice}</span>
+                                        <span class="text-white text-sm font-bold">ج.م</span>
+                                    </div>
+                                </div>
+                                
+                                <a href="${promo.link}" target="_blank" rel="noreferrer" class="bg-white text-rose-600 hover:bg-rose-50 hover:scale-105 transition-all px-8 py-4 rounded-xl font-black shadow-xl shadow-black/20 flex items-center gap-2">
+                                    احجز العرض الآن <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            updateIcons();
+        }
+
+        // Render Items based on active tab
+        function renderItems() {
+            const container = document.getElementById('itemsContainer');
+            const items = menuData[activeTab];
+            let html = '';
+
+            if (activeTab === 'photography' || activeTab === 'video') {
+                html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">`;
+                items.forEach(pkg => {
+                    let imagesHTML = '';
+                    if (pkg.images && pkg.images.length > 0) {
+                        imagesHTML = `
+                            <div class="w-2/3 h-full overflow-hidden">
+                                <img src="${pkg.images[0]}" alt="${pkg.name}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                            </div>
+                            <div class="w-1/3 h-full flex flex-col gap-1">
+                                ${pkg.images[1] ? `<div class="h-1/2 w-full overflow-hidden"><img src="${pkg.images[1]}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 delay-100" /></div>` : ''}
+                                ${pkg.images[2] ? `<div class="h-1/2 w-full overflow-hidden"><img src="${pkg.images[2]}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 delay-200" /></div>` : ''}
+                            </div>
+                        `;
+                    } else {
+                        imagesHTML = `<div class="w-full h-full bg-stone-200 flex items-center justify-center"><i data-lucide="image" class="w-10 h-10 text-stone-400"></i></div>`;
+                    }
+
+                    let editButtons = isEditMode ? `
+                        <div class="absolute top-2 right-2 z-20 flex gap-2">
+                            <button onclick="openEditModal(${pkg.id})" class="p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-sm transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem(${pkg.id})" class="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white shadow-sm transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    ` : '';
+
+                    let popularBadge = pkg.isPopular ? `
+                        <div class="absolute top-4 left-4 z-20 bg-gradient-to-r from-amber-500 to-orange-400 text-white px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-1 shadow-lg shadow-orange-500/30">
+                            <i data-lucide="star" class="w-3 h-3 fill-current"></i> الأكثر طلباً
+                        </div>
+                    ` : '';
+
+                    html += `
+                        <div class="relative bg-white/60 backdrop-blur-lg rounded-[2rem] border flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-2 group ${pkg.isPopular ? 'border-amber-300 shadow-[0_15px_50px_rgba(245,158,11,0.2)]' : 'border-white shadow-xl hover:shadow-2xl hover:border-rose-200'}">
+                            ${editButtons}
+                            ${popularBadge}
+                            <div class="relative h-56 w-full flex gap-1 bg-stone-100">
+                                ${imagesHTML}
+                                <div class="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent"></div>
+                            </div>
+                            <div class="p-6 flex-1 flex flex-col justify-end items-center text-center -mt-16 z-10">
+                                <h3 class="text-2xl font-bold text-stone-900 mb-2">${pkg.name}</h3>
+                                <div class="flex items-end justify-center gap-1 mb-6">
+                                    <span class="text-4xl font-black text-rose-500">${pkg.price}</span>
+                                    <span class="text-stone-500 mb-1 font-bold">ج.م</span>
+                                </div>
+                                <button onclick="openBookingModal(${pkg.id})" class="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-stone-900 text-white hover:bg-stone-800 shadow-lg hover:shadow-stone-900/20">
+                                    عرض التفاصيل والحجز
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            } else {
+                html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">`;
+                items.forEach(item => {
+                    let imageHTML = item.images && item.images[0] ? 
+                        `<img src="${item.images[0]}" alt="${item.name}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />` : 
+                        `<div class="w-full h-full bg-stone-200 flex items-center justify-center"><i data-lucide="image" class="w-8 h-8 text-stone-400"></i></div>`;
+                    
+                    let editButtons = isEditMode ? `
+                        <div class="absolute top-2 right-2 z-20 flex gap-2">
+                            <button onclick="openEditModal(${item.id})" class="p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-sm"><i data-lucide="pencil" class="w-4 h-4"></i></button>
+                            <button onclick="deleteItem(${item.id})" class="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white shadow-sm"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
+                        </div>
+                    ` : '';
+
+                    html += `
+                        <div class="relative bg-white/60 backdrop-blur-lg border border-white shadow-xl rounded-[2rem] overflow-hidden hover:border-rose-200 hover:-translate-y-1 transition-all group flex flex-col">
+                            ${editButtons}
+                            <div class="h-48 w-full overflow-hidden bg-stone-100 relative">
+                                ${imageHTML}
+                                <div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
+                            </div>
+                            <div class="p-5 flex flex-col flex-1">
+                                <h3 class="text-lg font-bold text-stone-900 mb-1">${item.name}</h3>
+                                <p class="text-stone-500 text-sm mb-4 flex-1">${item.desc}</p>
+                                <div class="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
+                                    <div class="flex items-end gap-1">
+                                        <span class="text-xl font-black text-rose-500">${item.price}</span>
+                                        <span class="text-stone-400 text-xs mb-0.5 font-bold">ج.م</span>
+                                    </div>
+                                    <button onclick="handleSimpleWhatsApp('${item.name}')" class="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white p-2.5 rounded-xl shadow-lg shadow-green-500/30 transition-all hover:-translate-y-0.5" title="طلب عبر الواتساب">
+                                        <i data-lucide="message-circle" class="w-5 h-5"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                html += `</div>`;
+            }
+
+            container.innerHTML = html;
+            updateIcons();
+        }
+
+        // WhatsApp simple
+        function handleSimpleWhatsApp(itemName) {
+            const phoneNumber = "201201260040";
+            const message = encodeURIComponent(`مرحباً، أريد طلب: ${itemName}`);
+            window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
+        }
+
+        // Copy to clipboard
+        function copyText(text) {
+            navigator.clipboard.writeText(text);
+            alert(`تم نسخ الرقم: ${text}`);
+        }
+
+        // --- Booking Modal Logic ---
+        function openBookingModal(id) {
+            const item = menuData[activeTab].find(i => i.id === id);
+            if (!item) return;
+
+            document.getElementById('bm-title').innerText = item.name;
+            document.getElementById('bm-price').innerText = item.price;
+            document.getElementById('bm-item-name').value = item.name;
+
+            // Features list
+            const featuresContainer = document.getElementById('bm-features');
+            featuresContainer.innerHTML = '';
+            if (item.features) {
+                item.features.forEach(f => {
+                    featuresContainer.innerHTML += `
+                        <li class="flex items-start gap-3 text-stone-700 text-sm font-medium">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-rose-500 shrink-0"></i>
+                            <span class="leading-relaxed">${f}</span>
+                        </li>
+                    `;
+                });
+            }
+
+            // Image
+            const imgContainer = document.getElementById('bm-image-container');
+            const imgEl = document.getElementById('bm-image');
+            if (item.images && item.images.length > 0) {
+                imgEl.src = item.images[0];
+                imgContainer.classList.remove('hidden');
+            } else {
+                imgContainer.classList.add('hidden');
+            }
+
+            // Dynamic Form Fields based on tab
+            const dynamicFields = document.getElementById('dynamicFormFields');
+            document.getElementById('bm-desc').innerText = activeTab === 'video' ? 'يرجى تعبئة بيانات الحجز السريعة.' : 'يرجى تعبئة البيانات وتحديد وسيلة الدفع لتأكيد الحجز.';
+            
+            let formHTML = '';
+            if (activeTab === 'video') {
+                formHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> اسم العميل بالكامل</label>
+                        <input required name="customerName" placeholder="مثال: أحمد محمود" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="calendar-days" class="w-3 h-3"></i> تاريخ المناسبة</label>
+                        <input required type="date" name="date" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all" />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="building-2" class="w-3 h-3"></i> المكان (القاعة والعنوان)</label>
+                      <input required name="location" placeholder="مكان التصوير بالتفصيل" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> مكان جلسة التصوير (السيشن)</label>
+                        <select name="photoLocation" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all cursor-pointer">
+                          <option value="لم يتم التحديد بعد">-- اختر مكان التصوير --</option>
+                          <option value="أمازون (1700 جنيه)">أمازون (1700 جنيه)</option>
+                          <option value="جرين آيلاند (1500 جنيه)">جرين آيلاند (1500 جنيه)</option>
+                          <option value="ويف (1500 جنيه)">ويف (1500 جنيه)</option>
+                          <option value="أطلانتس (1500 جنيه)">أطلانتس (1500 جنيه)</option>
+                          <option value="فايبس (1500 جنيه)">فايبس (1500 جنيه)</option>
+                          <option value="ريفر (1500 جنيه)">ريفر (1500 جنيه)</option>
+                          <option value="مكان آخر (غير محدد)">مكان آخر / لم نحدد بعد</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> رقم الهاتف</label>
+                        <input required type="tel" name="phone" placeholder="01xxxxxxxxx" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
+                      </div>
+                    </div>
+                `;
+            } else {
+                formHTML = `
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> اسم العريس</label>
+                        <input required name="groom" placeholder="مثال: أحمد محمود" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="user" class="w-3 h-3"></i> اسم العروسة</label>
+                        <input required name="bride" placeholder="مثال: سارة محمد" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="calendar-days" class="w-3 h-3"></i> تاريخ المناسبة</label>
+                        <input required type="date" name="date" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all" />
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> الميك أب ارتيست</label>
+                        <input name="makeup" placeholder="اسم خبيرة التجميل (اختياري)" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="building-2" class="w-3 h-3"></i> اسم القاعة / الفندق</label>
+                        <input name="hall" placeholder="اسم مكان الفرح" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="map" class="w-3 h-3"></i> العنوان (المنطقة/المحافظة)</label>
+                        <input required name="address" placeholder="مثال: القاهرة - التجمع الخامس" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="phone" class="w-3 h-3"></i> رقم الهاتف</label>
+                        <input required type="tel" name="phone" placeholder="01xxxxxxxxx" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3"></i> واتساب</label>
+                        <input required type="tel" name="whatsapp" placeholder="01xxxxxxxxx" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
+                      </div>
+                      <div>
+                        <label class="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><i data-lucide="map-pin" class="w-3 h-3"></i> مكان التصوير (السيشن)</label>
+                        <select name="photoLocation" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all cursor-pointer">
+                          <option value="لم يتم التحديد بعد">-- اختر المكان --</option>
+                          <option value="أمازون (1700 جنيه)">أمازون (1700 جنيه)</option>
+                          <option value="جرين آيلاند (1500 جنيه)">جرين آيلاند (1500 ج)</option>
+                          <option value="ويف (1500 جنيه)">ويف (1500 جنيه)</option>
+                          <option value="أطلانتس (1500 جنيه)">أطلانتس (1500 جنيه)</option>
+                          <option value="فايبس (1500 جنيه)">فايبس (1500 جنيه)</option>
+                          <option value="ريفر (1500 جنيه)">ريفر (1500 جنيه)</option>
+                          <option value="مكان آخر (غير محدد)">مكان آخر</option>
+                        </select>
+                      </div>
+                    </div>
+                `;
+            }
+            dynamicFields.innerHTML = formHTML;
+
+            // Reset payment
+            document.getElementById('paymentDetails').innerHTML = '';
+            document.getElementById('bookingForm').reset();
+            
+            document.getElementById('bookingModal').classList.remove('hidden');
+            document.getElementById('bookingModal').classList.add('flex');
+            updateIcons();
+        }
+
+        function closeBookingModal() {
+            document.getElementById('bookingModal').classList.add('hidden');
+            document.getElementById('bookingModal').classList.remove('flex');
+        }
+
+        function handlePaymentChange(method) {
+            const container = document.getElementById('paymentDetails');
+            container.classList.remove('hidden');
+            
+            if (method === 'vodafone') {
+                container.innerHTML = `
+                    <div class="p-4 bg-red-50/80 rounded-2xl border border-red-100 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in zoom-in duration-300">
+                        <div class="text-center sm:text-right">
+                            <p class="text-xs text-red-800 font-bold mb-1">التحويل على رقم فودافون كاش:</p>
+                            <p class="text-xl font-black tracking-wider text-red-600" dir="ltr">01126810107</p>
+                        </div>
+                        <a href="tel:*9*7*01126810107#" class="w-full sm:w-auto bg-red-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="smartphone" class="w-4 h-4"></i> فتح الاتصال
+                        </a>
+                    </div>
+                `;
+            } else if (method === 'instapay') {
+                container.innerHTML = `
+                    <div class="p-4 bg-purple-50/80 rounded-2xl border border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in zoom-in duration-300">
+                        <div class="text-center sm:text-right">
+                            <p class="text-xs text-purple-800 font-bold mb-1">التحويل على رقم إنستاباي:</p>
+                            <p class="text-xl font-black tracking-wider text-purple-600" dir="ltr">01126810107</p>
+                        </div>
+                        <button type="button" onclick="copyText('01126810107')" class="w-full sm:w-auto bg-purple-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-purple-600/30 hover:bg-purple-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                            <i data-lucide="copy" class="w-4 h-4"></i> نسخ الرقم
+                        </button>
+                    </div>
+                `;
+            }
+            updateIcons();
+        }
+
+        function submitBooking(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const itemName = formData.get('itemName');
+            const payment = formData.get('payment');
+            
+            let paymentText = "لم يحدد";
+            if (payment === 'vodafone') paymentText = "فودافون كاش";
+            if (payment === 'instapay') paymentText = "إنستاباي";
+
+            let message = "";
+
+            if (activeTab === 'video') {
+                const customerName = formData.get('customerName');
+                const date = formData.get('date');
+                const location = formData.get('location');
+                const phone = formData.get('phone');
+                const photoLocation = formData.get('photoLocation') || 'لم يتم التحديد';
+
+                message = `مرحباً، أريد الاستفسار وحجز: *${itemName}* (قسم الفيديو)
 
 *بيانات الحجز:*
 👤 اسم العميل: ${customerName}
 📅 التاريخ: ${date}
-📍 المكان: ${location}
+📍 المكان (القاعة): ${location}
+📸 مكان السيشن: ${photoLocation}
 📞 رقم الهاتف: ${phone}
+
 💳 طريقة دفع العربون: ${paymentText}
 
 برجاء تأكيد الحجز وإعلامي بالتفاصيل.`;
-    } else {
-        // الرسالة الشاملة لقسم الفوتوغرافيا
-        const groom = formData.get('groom');
-        const bride = formData.get('bride');
-        const date = formData.get('date');
-        const makeup = formData.get('makeup') || 'غير محدد';
-        const hall = formData.get('hall') || 'غير محدد';
-        const address = formData.get('address') || 'غير محدد';
-        const phone = formData.get('phone');
-        const whatsapp = formData.get('whatsapp');
-        const altPhone = formData.get('altPhone') || 'لا يوجد';
+            } else {
+                const groom = formData.get('groom');
+                const bride = formData.get('bride');
+                const date = formData.get('date');
+                const makeup = formData.get('makeup') || 'غير محدد';
+                const hall = formData.get('hall') || 'غير محدد';
+                const address = formData.get('address') || 'غير محدد';
+                const phone = formData.get('phone');
+                const whatsapp = formData.get('whatsapp');
+                const photoLocation = formData.get('photoLocation') || 'لم يتم التحديد';
 
-        message = `مرحباً، أريد الاستفسار وحجز: *${itemName}*
+                message = `مرحباً، أريد الاستفسار وحجز: *${itemName}*
 
 *بيانات الحجز:*
 🤵 العريس: ${groom}
@@ -182,666 +782,285 @@ export default function App() {
 💄 الميك أب: ${makeup}
 🏰 القاعة: ${hall}
 📍 العنوان: ${address}
+📸 مكان السيشن: ${photoLocation}
 
 *بيانات التواصل:*
 📞 رقم الهاتف: ${phone}
 💬 رقم الواتساب: ${whatsapp}
-📱 رقم إضافي: ${altPhone}
 
 💳 طريقة دفع العربون: ${paymentText}
 
 برجاء تأكيد الحجز وإعلامي بالتفاصيل.`;
-    }
+            }
 
-    const phoneNumber = "201201260040";
-    window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
-    setSelectedPackageForBooking(null);
-    setPaymentMethod(null);
-  };
+            const phoneNumber = "201201260040";
+            window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(message)}`, '_blank');
+            closeBookingModal();
+        }
 
-  const handleSimpleWhatsApp = (itemName) => {
-    const phoneNumber = "201201260040";
-    const message = encodeURIComponent(`مرحباً، أريد طلب: ${itemName}`);
-    window.open(`https://wa.me/${phoneNumber}?text=${message}`, '_blank');
-  };
+        // --- Edit Modal Logic ---
+        function deleteItem(id) {
+            if(window.confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
+                menuData[activeTab] = menuData[activeTab].filter(item => item.id !== id);
+                renderItems();
+            }
+        }
 
-  const handleDelete = (tab, id) => {
-    if(window.confirm('هل أنت متأكد من حذف هذا العنصر؟')) {
-      setMenuData(prev => ({
-        ...prev,
-        [tab]: prev[tab].filter(item => item.id !== id)
-      }));
-    }
-  };
+        function openEditModal(id) {
+            const dynamicFields = document.getElementById('em-dynamic-fields');
+            let item = null;
+            let type = 'item';
+            formImages = [];
+            promoImage = '';
 
-  const openModalForEdit = (item) => {
-    setEditingItem(item);
-    if (item.id === 'promo') {
-      setPromoImage(item.image || '');
-    } else {
-      setFormImages(item.images || []);
-    }
-    setIsEditModalOpen(true);
-  };
+            if (id === 'promo') {
+                item = menuData.promo;
+                type = 'promo';
+                promoImage = item.image || '';
+                document.getElementById('em-title').innerText = 'تعديل الإعلان الخاص';
+            } else if (id !== null) {
+                item = menuData[activeTab].find(i => i.id === id);
+                formImages = item.images ? [...item.images] : [];
+                document.getElementById('em-title').innerText = 'تعديل العنصر';
+            } else {
+                document.getElementById('em-title').innerText = 'إضافة عنصر جديد';
+            }
 
-  const openModalForAdd = () => {
-    setEditingItem(null);
-    setFormImages([]);
-    setPromoImage('');
-    setIsEditModalOpen(true);
-  };
+            document.getElementById('em-id').value = id !== null ? id : '';
+            document.getElementById('em-type').value = type;
 
-  const handleSaveEdit = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    
-    // إذا كان التعديل للعرض الخاص (Promo)
-    if (editingItem && editingItem.id === 'promo') {
-      const newPromo = {
-        id: 'promo',
-        isActive: formData.get('isActive') === 'on',
-        title: formData.get('title'),
-        desc: formData.get('desc'),
-        price: formData.get('price'),
-        oldPrice: formData.get('oldPrice'),
-        link: formData.get('link'),
-        image: promoImage,
-      };
-      setMenuData(prev => ({ ...prev, promo: newPromo }));
-      setIsEditModalOpen(false);
-      return;
-    }
-
-    // التعديل لباقي الأقسام
-    const isFeaturesTab = activeTab === 'photography' || activeTab === 'video';
-    const newItem = {
-      id: editingItem ? editingItem.id : Date.now(),
-      name: formData.get('name'),
-      price: formData.get('price'),
-      images: formImages,
-      isPopular: formData.get('isPopular') === 'on',
-    };
-
-    if (isFeaturesTab) {
-      newItem.features = formData.get('features').split('\n').filter(f => f.trim() !== '');
-    } else {
-      newItem.desc = formData.get('desc');
-    }
-
-    setMenuData(prev => {
-      const currentTab = prev[activeTab];
-      if (editingItem) {
-        return { ...prev, [activeTab]: currentTab.map(item => item.id === editingItem.id ? newItem : item) };
-      } else {
-        return { ...prev, [activeTab]: [...currentTab, newItem] };
-      }
-    });
-
-    setIsEditModalOpen(false);
-  };
-
-  return (
-    <div className="min-h-screen font-tajawal selection:bg-rose-400 selection:text-white pb-20 bg-[#fdfbf7] bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-50 via-orange-50 to-amber-50 text-stone-800 transition-colors duration-500" dir="rtl">
-      
-      {/* Header */}
-      <header className="bg-white/50 backdrop-blur-xl border-b border-white/60 sticky top-0 z-40 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-          <div className="text-center md:text-right">
-            <h1 className="text-2xl md:text-3xl font-extrabold bg-gradient-to-r from-rose-600 to-amber-500 bg-clip-text text-transparent tracking-wider">LENS & LIGHT</h1>
-            <p className="text-xs text-stone-500 mt-1 uppercase tracking-widest font-bold">Photography Studio</p>
-          </div>
-          
-          <button 
-            onClick={() => setIsEditMode(!isEditMode)}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all
-              ${isEditMode ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'bg-white/80 text-stone-600 border border-stone-200 hover:text-rose-600 hover:bg-white shadow-sm'}`}
-          >
-            <Settings className="w-4 h-4" />
-            {isEditMode ? 'إغلاق وضع التعديل' : 'تعديل المينيو'}
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <main className="max-w-5xl mx-auto px-4 py-6 md:py-10">
-        
-        {/* Promo Banner (الإعلان الهام) */}
-        {menuData.promo?.isActive && (
-          <div className="relative w-full rounded-[2rem] overflow-hidden shadow-2xl mb-12 group bg-gradient-to-br from-rose-600 via-pink-600 to-purple-700 text-white">
-            {isEditMode && (
-              <button onClick={() => openModalForEdit(menuData.promo)} className="absolute top-4 right-4 z-30 p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-lg transition-all">
-                <Pencil className="w-5 h-5" />
-              </button>
-            )}
+            let html = '';
             
-            <div className="flex flex-col md:flex-row">
-              {/* Image Side */}
-              <div className="md:w-5/12 h-64 md:h-auto relative overflow-hidden order-2 md:order-1">
-                <img src={menuData.promo.image} alt="عرض خاص" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
-                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-rose-900/80 via-transparent to-transparent"></div>
-              </div>
-              
-              {/* Text Side */}
-              <div className="md:w-7/12 p-8 md:p-12 flex flex-col justify-center relative order-1 md:order-2">
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                
-                <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-md px-4 py-1.5 rounded-full w-max text-sm font-bold mb-4 border border-white/30">
-                  <Flame className="w-4 h-4 text-amber-300" /> عرض خاص جداً
-                </div>
-                
-                <h2 className="text-3xl md:text-5xl font-black mb-4 leading-tight">{menuData.promo.title}</h2>
-                <p className="text-rose-100 text-lg mb-8 leading-relaxed font-medium">{menuData.promo.desc}</p>
-                
-                <div className="flex flex-wrap items-center justify-between gap-6">
-                  <div className="flex items-center gap-4">
-                    <span className="text-5xl font-black text-amber-300">{menuData.promo.price}</span>
-                    <div className="flex flex-col">
-                      <span className="text-rose-200 font-bold line-through text-lg">{menuData.promo.oldPrice}</span>
-                      <span className="text-white text-sm font-bold">ج.م</span>
+            if (type === 'promo') {
+                html = `
+                    <div class="flex items-center gap-2 bg-stone-50 p-3 rounded-xl border border-stone-200">
+                        <input type="checkbox" id="isActive" name="isActive" ${item?.isActive ? 'checked' : ''} class="w-5 h-5 accent-rose-500 rounded" />
+                        <label for="isActive" class="text-stone-700 font-bold text-sm cursor-pointer select-none">تفعيل الإعلان (ظهوره للعملاء)</label>
                     </div>
-                  </div>
-                  
-                  <a href={menuData.promo.link} target="_blank" rel="noreferrer" className="bg-white text-rose-600 hover:bg-rose-50 hover:scale-105 transition-all px-8 py-4 rounded-xl font-black shadow-xl shadow-black/20 flex items-center gap-2">
-                    احجز العرض الآن <ArrowLeft className="w-5 h-5" />
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Title Section & Tabs */}
-        <div className="text-center mb-10 flex justify-center items-center flex-col relative">
-          <h2 className="text-3xl md:text-5xl font-black text-stone-800 mb-6 tracking-tight">استكشف باقاتنا</h2>
-          
-          {/* Beautiful Glassmorphism Tabs */}
-          <div className="w-full max-w-3xl mx-auto bg-white/40 p-2 rounded-[2rem] backdrop-blur-xl border border-white shadow-xl mb-8">
-            <nav className="flex justify-start md:justify-center gap-2 md:gap-3 overflow-x-auto hide-scrollbar snap-x pb-1 md:pb-0">
-              <TabButton 
-                active={activeTab === 'photography'} onClick={() => setActiveTab('photography')} 
-                icon={<Camera className="w-5 h-5 mb-1" />} text="باقات الزفاف" 
-                activeColor="from-amber-400 to-orange-500" shadowColor="shadow-orange-500/40"
-              />
-              <TabButton 
-                active={activeTab === 'video'} onClick={() => setActiveTab('video')} 
-                icon={<Video className="w-5 h-5 mb-1" />} text="الفيديو والسينما" 
-                activeColor="from-blue-400 to-cyan-500" shadowColor="shadow-cyan-500/40"
-              />
-              <TabButton 
-                active={activeTab === 'tableaus'} onClick={() => setActiveTab('tableaus')} 
-                icon={<ImageIcon className="w-5 h-5 mb-1" />} text="التابلوهات" 
-                activeColor="from-fuchsia-400 to-pink-500" shadowColor="shadow-pink-500/40"
-              />
-              <TabButton 
-                active={activeTab === 'gifts'} onClick={() => setActiveTab('gifts')} 
-                icon={<Gift className="w-5 h-5 mb-1" />} text="الهدايا" 
-                activeColor="from-emerald-400 to-teal-500" shadowColor="shadow-teal-500/40"
-              />
-            </nav>
-          </div>
-
-          {isEditMode && (
-             <button onClick={openModalForAdd} className="flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white px-6 py-3 rounded-full font-bold transition-all shadow-lg shadow-green-500/30">
-               <Plus className="w-5 h-5" /> إضافة عنصر جديد
-             </button>
-          )}
-        </div>
-
-        {/* Content Section */}
-        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
-          
-          {/* Photography & Video Cards */}
-          {(activeTab === 'photography' || activeTab === 'video') && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {menuData[activeTab].map((pkg) => (
-                <div key={pkg.id} className={`relative bg-white/60 backdrop-blur-lg rounded-[2rem] border flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-2 group
-                  ${pkg.isPopular ? 'border-amber-300 shadow-[0_15px_50px_rgba(245,158,11,0.2)]' : 'border-white shadow-xl hover:shadow-2xl hover:border-rose-200'}
-                `}>
-                  
-                  {isEditMode && (
-                    <div className="absolute top-2 right-2 z-20 flex gap-2">
-                      <button onClick={(e) => {e.stopPropagation(); openModalForEdit(pkg);}} className="p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-sm transition-all"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={(e) => {e.stopPropagation(); handleDelete(activeTab, pkg.id);}} className="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white shadow-sm transition-all"><Trash2 className="w-4 h-4" /></button>
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">عنوان الإعلان</label>
+                        <input required value="${item?.title || ''}" name="title" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
                     </div>
-                  )}
-
-                  {pkg.isPopular && (
-                    <div className="absolute top-4 left-4 z-20 bg-gradient-to-r from-amber-500 to-orange-400 text-white px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-1 shadow-lg shadow-orange-500/30">
-                      <Star className="w-3 h-3 fill-current" /> الأكثر طلباً
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">وصف العرض</label>
+                        <textarea required rows="3" name="desc" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400">${item?.desc || ''}</textarea>
                     </div>
-                  )}
-
-                  <div className="relative h-56 w-full flex gap-1 bg-stone-100">
-                    {pkg.images && pkg.images.length > 0 ? (
-                      <>
-                        <div className="w-2/3 h-full overflow-hidden">
-                          <img src={pkg.images[0]} alt={pkg.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-stone-700 font-bold text-sm mb-2">سعر العرض (الجديد)</label>
+                            <input required value="${item?.price || ''}" name="price" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400" />
                         </div>
-                        <div className="w-1/3 h-full flex flex-col gap-1">
-                          {pkg.images[1] && <div className="h-1/2 w-full overflow-hidden"><img src={pkg.images[1]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 delay-100" /></div>}
-                          {pkg.images[2] && <div className="h-1/2 w-full overflow-hidden"><img src={pkg.images[2]} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 delay-200" /></div>}
+                        <div>
+                            <label class="block text-stone-700 font-bold text-sm mb-2">السعر القديم (قبل الخصم)</label>
+                            <input required value="${item?.oldPrice || ''}" name="oldPrice" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400" />
                         </div>
-                      </>
-                    ) : (
-                      <div className="w-full h-full bg-stone-200 flex items-center justify-center"><ImageIcon className="w-10 h-10 text-stone-400" /></div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/50 to-transparent"></div>
-                  </div>
-
-                  <div className="p-6 flex-1 flex flex-col justify-end items-center text-center -mt-16 z-10">
-                    <h3 className="text-2xl font-bold text-stone-900 mb-2">{pkg.name}</h3>
-                    <div className="flex items-end justify-center gap-1 mb-6">
-                      <span className="text-4xl font-black text-rose-500">{pkg.price}</span>
-                      <span className="text-stone-500 mb-1 font-bold">ج.م</span>
                     </div>
-
-                    <button onClick={() => setSelectedPackageForBooking(pkg)} className="w-full py-3.5 rounded-xl font-bold transition-all flex items-center justify-center gap-2 bg-stone-900 text-white hover:bg-stone-800 shadow-lg hover:shadow-stone-900/20">
-                      عرض التفاصيل والحجز
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Tableaus & Gifts Cards */}
-          {(activeTab === 'tableaus' || activeTab === 'gifts') && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              {menuData[activeTab].map((item) => (
-                <div key={item.id} className="relative bg-white/60 backdrop-blur-lg border border-white shadow-xl rounded-[2rem] overflow-hidden hover:border-rose-200 hover:-translate-y-1 transition-all group flex flex-col">
-                  {isEditMode && (
-                    <div className="absolute top-2 right-2 z-20 flex gap-2">
-                      <button onClick={() => openModalForEdit(item)} className="p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-sm"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => handleDelete(activeTab, item.id)} className="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">رابط الزر المخصص</label>
+                        <input required value="${item?.link || ''}" name="link" dir="ltr" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 text-left focus:outline-none focus:border-rose-400" />
                     </div>
-                  )}
-
-                  <div className="h-48 w-full overflow-hidden bg-stone-100 relative">
-                    {item.images && item.images[0] ? (
-                      <img src={item.images[0]} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    ) : (
-                      <div className="w-full h-full bg-stone-200 flex items-center justify-center"><ImageIcon className="w-8 h-8 text-stone-400" /></div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
-                  </div>
-                  
-                  <div className="p-5 flex flex-col flex-1">
-                    <h3 className="text-lg font-bold text-stone-900 mb-1">{item.name}</h3>
-                    <p className="text-stone-500 text-sm mb-4 flex-1">{item.desc}</p>
-                    
-                    <div className="flex justify-between items-center mt-auto pt-4 border-t border-stone-100">
-                      <div className="flex items-end gap-1">
-                        <span className="text-xl font-black text-rose-500">{item.price}</span>
-                        <span className="text-stone-400 text-xs mb-0.5 font-bold">ج.م</span>
-                      </div>
-                      <button onClick={() => handleSimpleWhatsApp(item.name)} className="bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white p-2.5 rounded-xl shadow-lg shadow-green-500/30 transition-all hover:-translate-y-0.5" title="طلب عبر الواتساب">
-                        <MessageCircle className="w-5 h-5" />
-                      </button>
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">صورة الغلاف للإعلان</label>
+                        <div class="flex flex-col gap-3">
+                            <div id="promoImagePreviewContainer" class="${promoImage ? '' : 'hidden'}">
+                                <img id="promoImagePreview" src="${promoImage}" alt="Preview" class="w-full h-32 object-cover rounded-xl border border-stone-200 shadow-sm" />
+                            </div>
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <label class="bg-rose-100 text-rose-600 px-4 py-3 rounded-xl cursor-pointer hover:bg-rose-200 transition-colors text-sm font-bold flex items-center justify-center shrink-0 gap-2">
+                                    <i data-lucide="upload" class="w-4 h-4"></i> رفع صورة من الجهاز
+                                    <input type="file" accept="image/*" class="hidden" onchange="handleImageUpload(event, 'promo')" />
+                                </label>
+                                <div class="flex flex-1 gap-1">
+                                    <input type="text" id="promoImgUrl" placeholder="أو أضف رابط صورة..." class="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-400" dir="ltr" />
+                                    <button type="button" onclick="addImageUrl('promo')" class="bg-stone-200 text-stone-700 px-4 rounded-xl hover:bg-stone-300 transition-colors font-bold text-sm flex items-center justify-center">إضافة</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </main>
+                `;
+            } else {
+                html = `
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">اسم الباقة / العنصر</label>
+                        <input required value="${item?.name || ''}" name="name" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
+                    </div>
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">السعر</label>
+                        <input required value="${item?.price || ''}" name="price" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
+                    </div>
+                    <div>
+                        <label class="block text-stone-700 font-bold text-sm mb-2">صور الباقة / العنصر</label>
+                        <div id="formImagesContainer" class="flex flex-wrap gap-3 mb-3">
+                            <!-- Images rendered here -->
+                        </div>
+                        <div class="flex flex-col md:flex-row gap-2">
+                            <label class="bg-rose-100 text-rose-600 px-4 py-3 rounded-xl cursor-pointer hover:bg-rose-200 transition-colors text-sm font-bold flex items-center justify-center gap-2 shrink-0">
+                                <i data-lucide="upload" class="w-4 h-4"></i> رفع صور
+                                <input type="file" accept="image/*" multiple class="hidden" onchange="handleImageUpload(event, 'items')" />
+                            </label>
+                            <div class="flex flex-1 gap-1">
+                                <input type="text" id="itemImgUrl" placeholder="أو أضف رابط صورة..." class="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-400" dir="ltr" />
+                                <button type="button" onclick="addImageUrl('items')" class="bg-stone-200 text-stone-700 px-4 rounded-xl hover:bg-stone-300 transition-colors font-bold text-sm flex items-center justify-center">إضافة</button>
+                            </div>
+                        </div>
+                        <p class="text-xs text-stone-500 mt-2 font-medium">يُفضل إدخال 3 صور لتظهر كغلاف في الباقات.</p>
+                    </div>
+                `;
 
-      {/* Booking Details Modal */}
-      {selectedPackageForBooking && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-stone-900/60 backdrop-blur-md overflow-y-auto custom-scrollbar">
-          <div className="relative bg-white/95 backdrop-blur-2xl border border-white rounded-[2rem] w-full max-w-4xl overflow-hidden shadow-2xl animate-in zoom-in-95 duration-300 my-8 flex flex-col md:flex-row">
+                if (activeTab === 'photography' || activeTab === 'video') {
+                    html += `
+                        <div>
+                            <label class="block text-stone-700 font-bold text-sm mb-2">المميزات (ميزة في كل سطر)</label>
+                            <textarea required rows="5" name="features" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400">${item?.features?.join('\n') || ''}</textarea>
+                        </div>
+                        <div class="flex items-center gap-2 bg-stone-50 p-3 rounded-xl border border-stone-200">
+                            <input type="checkbox" id="isPopular" name="isPopular" ${item?.isPopular ? 'checked' : ''} class="w-5 h-5 accent-amber-500 rounded" />
+                            <label for="isPopular" class="text-stone-700 font-bold text-sm cursor-pointer select-none">تمييز كـ "الأكثر طلباً"</label>
+                        </div>
+                    `;
+                } else {
+                    html += `
+                        <div>
+                            <label class="block text-stone-700 font-bold text-sm mb-2">الوصف (المقاس أو التفاصيل)</label>
+                            <input required value="${item?.desc || ''}" name="desc" class="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
+                        </div>
+                    `;
+                }
+            }
+
+            dynamicFields.innerHTML = html;
             
-            {/* زر الإغلاق الثابت والموحد لجميع الشاشات */}
-            <button onClick={() => {setSelectedPackageForBooking(null); setPaymentMethod(null);}} className="absolute top-4 left-4 z-50 p-2.5 bg-stone-100/90 backdrop-blur hover:bg-rose-100 rounded-full text-stone-600 hover:text-rose-600 transition-all shadow-sm">
-              <X className="w-5 h-5" />
-            </button>
+            if (type === 'item') {
+                renderFormImages();
+            }
 
-            {/* Right Side: Package Details */}
-            <div className="md:w-5/12 bg-rose-50/50 p-6 md:p-8 pt-16 flex flex-col border-b md:border-b-0 md:border-l border-rose-100">
-              <div className="mb-6">
-                <h3 className="text-3xl font-black text-stone-900 mb-2">{selectedPackageForBooking.name}</h3>
-                <div className="flex items-end gap-1">
-                  <span className="text-4xl font-black text-rose-500">{selectedPackageForBooking.price}</span>
-                  <span className="text-stone-500 mb-1 font-bold">ج.م</span>
-                </div>
-              </div>
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+            updateIcons();
+        }
 
-              <div className="flex-1">
-                <h4 className="text-rose-400 font-bold mb-4 text-sm uppercase tracking-widest">مميزات الباقة</h4>
-                <ul className="space-y-4">
-                  {selectedPackageForBooking.features?.map((feature, idx) => (
-                    <li key={idx} className="flex items-start gap-3 text-stone-700 text-sm font-medium">
-                      <CheckCircle2 className="w-5 h-5 text-rose-500 shrink-0" />
-                      <span className="leading-relaxed">{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('flex');
+        }
 
-              {selectedPackageForBooking.images && (
-                 <div className="mt-8 h-32 rounded-2xl overflow-hidden relative shadow-inner">
-                    <img src={selectedPackageForBooking.images[0]} alt="cover" className="w-full h-full object-cover" />
-                 </div>
-              )}
-            </div>
-
-            {/* Left Side: Dynamic Booking Form */}
-            <div className="md:w-7/12 p-6 md:p-8 pt-16 relative bg-white">
-              
-              <div className="mb-6">
-                <h3 className="text-xl font-bold text-stone-900 flex items-center gap-2">
-                  <CalendarDays className="w-6 h-6 text-rose-500" /> نموذج استكمال الحجز
-                </h3>
-                <p className="text-sm text-stone-500 mt-2 font-medium">
-                  {activeTab === 'video' ? 'يرجى تعبئة بيانات الحجز السريعة.' : 'يرجى تعبئة البيانات وتحديد وسيلة الدفع لتأكيد الحجز.'}
-                </p>
-              </div>
-
-              <form onSubmit={(e) => handleBookingSubmit(e, selectedPackageForBooking.name)} className="space-y-4">
-                
-                {/* --- نموذج حجز قسم الفيديو (مختصر) --- */}
-                {activeTab === 'video' ? (
-                  <>
-                    <div>
-                      <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><User className="w-3 h-3"/> اسم العميل بالكامل</label>
-                      <input required name="customerName" placeholder="مثال: أحمد محمود" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><CalendarDays className="w-3 h-3"/> تاريخ المناسبة</label>
-                        <input required type="date" name="date" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all" />
-                      </div>
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Phone className="w-3 h-3"/> رقم الهاتف</label>
-                        <input required type="tel" name="phone" placeholder="01xxxxxxxxx" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Map className="w-3 h-3"/> المكان (القاعة والعنوان)</label>
-                      <input required name="location" placeholder="مكان التصوير بالتفصيل" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                    </div>
-                  </>
-                ) : (
-                  /* --- نموذج حجز قسم الفوتوغرافيا (كامل) --- */
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><User className="w-3 h-3"/> اسم العريس</label>
-                        <input required name="groom" placeholder="مثال: أحمد محمود" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                      </div>
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><User className="w-3 h-3"/> اسم العروسة</label>
-                        <input required name="bride" placeholder="مثال: سارة محمد" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><CalendarDays className="w-3 h-3"/> تاريخ المناسبة</label>
-                        <input required type="date" name="date" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all" />
-                      </div>
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Sparkles className="w-3 h-3"/> الميك أب ارتيست</label>
-                        <input name="makeup" placeholder="اسم خبيرة التجميل (اختياري)" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Building2 className="w-3 h-3"/> اسم القاعة / الفندق</label>
-                        <input name="hall" placeholder="اسم مكان الفرح" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                      </div>
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Map className="w-3 h-3"/> العنوان (المنطقة/المحافظة)</label>
-                        <input required name="address" placeholder="مثال: القاهرة - التجمع الخامس" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Phone className="w-3 h-3"/> رقم الهاتف</label>
-                        <input required type="tel" name="phone" placeholder="01xxxxxxxxx" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
-                      </div>
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><MessageCircle className="w-3 h-3"/> واتساب</label>
-                        <input required type="tel" name="whatsapp" placeholder="01xxxxxxxxx" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
-                      </div>
-                      <div>
-                        <label className="block text-stone-600 text-xs font-bold mb-1.5 flex items-center gap-1"><Smartphone className="w-3 h-3"/> رقم إضافي (اختياري)</label>
-                        <input type="tel" name="altPhone" placeholder="01xxxxxxxxx" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-sm text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400 transition-all placeholder:text-stone-400" dir="ltr" />
-                      </div>
-                    </div>
-                  </>
-                )}
-
-                {/* وسائل الدفع المشتركة */}
-                <div className="pt-4 mt-4 border-t border-stone-100">
-                  <label className="block text-stone-900 text-sm font-bold mb-3">طريقة دفع العربون (لتأكيد الحجز)</label>
-                  <div className="flex gap-3">
-                    <label className="flex-1 cursor-pointer relative">
-                      <input type="radio" name="payment" value="vodafone" required className="peer sr-only" onChange={() => setPaymentMethod('vodafone')} />
-                      <div className="p-3 bg-stone-50 border-2 border-transparent peer-checked:border-red-500 peer-checked:bg-red-50/50 rounded-2xl flex flex-col items-center gap-2 shadow-sm transition-all text-center hover:bg-stone-100">
-                        <Wallet className="w-6 h-6 text-red-500" />
-                        <span className="text-xs font-bold text-stone-700">فودافون كاش</span>
-                      </div>
-                    </label>
-                    <label className="flex-1 cursor-pointer relative">
-                      <input type="radio" name="payment" value="instapay" required className="peer sr-only" onChange={() => setPaymentMethod('instapay')} />
-                      <div className="p-3 bg-stone-50 border-2 border-transparent peer-checked:border-purple-600 peer-checked:bg-purple-50/50 rounded-2xl flex flex-col items-center gap-2 shadow-sm transition-all text-center hover:bg-stone-100">
-                        <CreditCard className="w-6 h-6 text-purple-600" />
-                        <span className="text-xs font-bold text-stone-700">إنستاباي</span>
-                      </div>
-                    </label>
-                  </div>
-
-                  {/* تفاصيل طريقة الدفع المختارة */}
-                  {paymentMethod === 'vodafone' && (
-                    <div className="mt-3 p-4 bg-red-50/80 rounded-2xl border border-red-100 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in zoom-in duration-300">
-                      <div className="text-center sm:text-right">
-                        <p className="text-xs text-red-800 font-bold mb-1">التحويل على رقم فودافون كاش:</p>
-                        <p className="text-xl font-black tracking-wider text-red-600" dir="ltr">01126810107</p>
-                      </div>
-                      <a href="tel:*9*7*01126810107#" className="w-full sm:w-auto bg-red-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-red-600/30 hover:bg-red-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                        <Smartphone className="w-4 h-4"/> فتح الاتصال
-                      </a>
-                    </div>
-                  )}
-
-                  {paymentMethod === 'instapay' && (
-                    <div className="mt-3 p-4 bg-purple-50/80 rounded-2xl border border-purple-100 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in zoom-in duration-300">
-                      <div className="text-center sm:text-right">
-                        <p className="text-xs text-purple-800 font-bold mb-1">التحويل على رقم إنستاباي:</p>
-                        <p className="text-xl font-black tracking-wider text-purple-600" dir="ltr">01126810107</p>
-                      </div>
-                      <button type="button" onClick={() => copyToClipboard('01126810107')} className="w-full sm:w-auto bg-purple-600 text-white px-5 py-3 rounded-xl text-sm font-bold shadow-lg shadow-purple-600/30 hover:bg-purple-700 hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
-                        <Copy className="w-4 h-4"/> نسخ الرقم
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                <div className="pt-6 mt-6 border-t border-stone-100">
-                  <button type="submit" className="w-full py-3 md:py-4 rounded-xl text-sm md:text-base font-bold transition-all flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/40 transform hover:-translate-y-1">
-                    <MessageCircle className="w-6 h-6" />
-                    تأكيد الحجز وإرسال عبر واتساب
-                  </button>
-                </div>
-              </form>
-            </div>
-
-          </div>
-        </div>
-      )}
-
-      {/* Add / Edit Backend Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/40 backdrop-blur-sm">
-          <div className="bg-white border border-white rounded-[2rem] w-full max-w-lg overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center p-5 border-b border-stone-100 bg-stone-50/50">
-              <h3 className="text-xl font-bold text-stone-900">
-                {editingItem?.id === 'promo' ? 'تعديل الإعلان الخاص' : (editingItem ? 'تعديل العنصر' : 'إضافة عنصر جديد')}
-              </h3>
-              <button onClick={() => setIsEditModalOpen(false)} className="text-stone-400 hover:text-stone-600 bg-white p-2 rounded-full shadow-sm"><X className="w-5 h-5" /></button>
-            </div>
+        // Image Handling in Edit Modal
+        function handleImageUpload(e, type) {
+            const files = Array.from(e.target.files);
             
-            <form onSubmit={handleSaveEdit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto custom-scrollbar">
-              
-              {/* نموذج تعديل الإعلان (Promo) */}
-              {editingItem?.id === 'promo' ? (
-                <>
-                  <div className="flex items-center gap-2 bg-stone-50 p-3 rounded-xl border border-stone-200">
-                    <input type="checkbox" id="isActive" name="isActive" defaultChecked={editingItem?.isActive} className="w-5 h-5 accent-rose-500 rounded" />
-                    <label htmlFor="isActive" className="text-stone-700 font-bold text-sm cursor-pointer select-none">تفعيل الإعلان (ظهوره للعملاء)</label>
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">عنوان الإعلان</label>
-                    <input required defaultValue={editingItem?.title} name="title" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">وصف العرض</label>
-                    <textarea required rows={3} defaultValue={editingItem?.desc} name="desc" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-stone-700 font-bold text-sm mb-2">سعر العرض (الجديد)</label>
-                      <input required defaultValue={editingItem?.price} name="price" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400" />
-                    </div>
-                    <div>
-                      <label className="block text-stone-700 font-bold text-sm mb-2">السعر القديم (قبل الخصم)</label>
-                      <input required defaultValue={editingItem?.oldPrice} name="oldPrice" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">رابط الزر المخصص (مثل رابط واتساب مباشر)</label>
-                    <input required defaultValue={editingItem?.link} name="link" dir="ltr" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 text-left focus:outline-none focus:border-rose-400" />
-                  </div>
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">صورة الغلاف للإعلان</label>
-                    <div className="flex flex-col gap-3">
-                      {promoImage && <img src={promoImage} alt="Preview" className="w-full h-32 object-cover rounded-xl border border-stone-200 shadow-sm" />}
-                      <div className="flex flex-col sm:flex-row gap-2">
-                        <label className="bg-rose-100 text-rose-600 px-4 py-3 rounded-xl cursor-pointer hover:bg-rose-200 transition-colors text-sm font-bold flex items-center justify-center shrink-0 gap-2">
-                          <Upload className="w-4 h-4" /> رفع صورة من الجهاز
-                          <input type="file" accept="image/*" className="hidden" onChange={(e) => {
-                              const file = e.target.files[0];
-                              if(file) {
-                                  const reader = new FileReader();
-                                  reader.onloadend = () => setPromoImage(reader.result);
-                                  reader.readAsDataURL(file);
-                              }
-                          }} />
-                        </label>
-                        <div className="flex flex-1 gap-1">
-                          <input type="text" value={tempImageUrl} onChange={(e) => setTempImageUrl(e.target.value)} placeholder="أو أضف رابط صورة..." className="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-400" dir="ltr" />
-                          <button type="button" onClick={() => { if(tempImageUrl) { setPromoImage(tempImageUrl); setTempImageUrl(''); } }} className="bg-stone-200 text-stone-700 px-4 rounded-xl hover:bg-stone-300 transition-colors font-bold text-sm flex items-center justify-center">إضافة</button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                /* نموذج تعديل باقي الباقات */
-                <>
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">اسم الباقة / العنصر</label>
-                    <input required defaultValue={editingItem?.name} name="name" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
-                  </div>
-                  
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">السعر</label>
-                    <input required defaultValue={editingItem?.price} name="price" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
-                  </div>
+            if (type === 'promo' && files[0]) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                    promoImage = reader.result;
+                    document.getElementById('promoImagePreview').src = promoImage;
+                    document.getElementById('promoImagePreviewContainer').classList.remove('hidden');
+                };
+                reader.readAsDataURL(files[0]);
+            } else if (type === 'items') {
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => {
+                        formImages.push(reader.result);
+                        renderFormImages();
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+            e.target.value = null; // reset
+        }
 
-                  <div>
-                    <label className="block text-stone-700 font-bold text-sm mb-2">صور الباقة / العنصر</label>
-                    
-                    {formImages.length > 0 && (
-                      <div className="flex flex-wrap gap-3 mb-3">
-                        {formImages.map((img, idx) => (
-                          <div key={idx} className="relative w-20 h-20 rounded-xl overflow-hidden border border-stone-200 shadow-sm group">
-                            <img src={img} alt="img" className="w-full h-full object-cover" />
-                            <button type="button" onClick={() => setFormImages(prev => prev.filter((_, i) => i !== idx))} className="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                              <Trash2 className="w-5 h-5" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    
-                    <div className="flex flex-col md:flex-row gap-2">
-                      <label className="bg-rose-100 text-rose-600 px-4 py-3 rounded-xl cursor-pointer hover:bg-rose-200 transition-colors text-sm font-bold flex items-center justify-center gap-2 shrink-0">
-                        <Upload className="w-4 h-4" /> رفع صور من الجهاز
-                        <input type="file" accept="image/*" multiple className="hidden" onChange={(e) => {
-                          const files = Array.from(e.target.files);
-                          files.forEach(file => {
-                             const reader = new FileReader();
-                             reader.onloadend = () => setFormImages(prev => [...prev, reader.result]);
-                             reader.readAsDataURL(file);
-                          });
-                          e.target.value = null; // reset input
-                        }} />
-                      </label>
-                      <div className="flex flex-1 gap-1">
-                        <input type="text" value={tempImageUrl} onChange={(e) => setTempImageUrl(e.target.value)} placeholder="أو أضف رابط صورة..." className="flex-1 bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-rose-400" dir="ltr" />
-                        <button type="button" onClick={() => { if(tempImageUrl) { setFormImages(prev => [...prev, tempImageUrl]); setTempImageUrl(''); } }} className="bg-stone-200 text-stone-700 px-4 rounded-xl hover:bg-stone-300 transition-colors font-bold text-sm flex items-center justify-center">إضافة</button>
-                      </div>
+        function addImageUrl(type) {
+            if (type === 'promo') {
+                const input = document.getElementById('promoImgUrl');
+                if (input.value) {
+                    promoImage = input.value;
+                    document.getElementById('promoImagePreview').src = promoImage;
+                    document.getElementById('promoImagePreviewContainer').classList.remove('hidden');
+                    input.value = '';
+                }
+            } else {
+                const input = document.getElementById('itemImgUrl');
+                if (input.value) {
+                    formImages.push(input.value);
+                    renderFormImages();
+                    input.value = '';
+                }
+            }
+        }
+
+        function removeFormImage(index) {
+            formImages.splice(index, 1);
+            renderFormImages();
+        }
+
+        function renderFormImages() {
+            const container = document.getElementById('formImagesContainer');
+            if(!container) return;
+            
+            container.innerHTML = '';
+            formImages.forEach((img, idx) => {
+                container.innerHTML += `
+                    <div class="relative w-20 h-20 rounded-xl overflow-hidden border border-stone-200 shadow-sm group">
+                        <img src="${img}" alt="img" class="w-full h-full object-cover" />
+                        <button type="button" onclick="removeFormImage(${idx})" class="absolute inset-0 bg-red-500/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
+                            <i data-lucide="trash-2" class="w-5 h-5"></i>
+                        </button>
                     </div>
-                    <p className="text-xs text-stone-500 mt-2 font-medium">يُفضل إدخال 3 صور لتظهر كغلاف في الباقات.</p>
-                  </div>
+                `;
+            });
+            updateIcons();
+        }
 
-                  {(activeTab === 'photography' || activeTab === 'video') ? (
-                    <>
-                      <div>
-                        <label className="block text-stone-700 font-bold text-sm mb-2">المميزات (ميزة في كل سطر)</label>
-                        <textarea required rows={5} defaultValue={editingItem?.features?.join('\n')} name="features" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
-                      </div>
-                      <div className="flex items-center gap-2 bg-stone-50 p-3 rounded-xl border border-stone-200">
-                        <input type="checkbox" id="isPopular" name="isPopular" defaultChecked={editingItem?.isPopular} className="w-5 h-5 accent-amber-500 rounded" />
-                        <label htmlFor="isPopular" className="text-stone-700 font-bold text-sm cursor-pointer select-none">تمييز كـ "الأكثر طلباً"</label>
-                      </div>
-                    </>
-                  ) : (
-                    <div>
-                      <label className="block text-stone-700 font-bold text-sm mb-2">الوصف (المقاس أو التفاصيل)</label>
-                      <input required defaultValue={editingItem?.desc} name="desc" className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-3 text-stone-900 focus:outline-none focus:border-rose-400 focus:ring-1 focus:ring-rose-400" />
-                    </div>
-                  )}
-                </>
-              )}
+        // Save Edit
+        function handleSaveEdit(e) {
+            e.preventDefault();
+            const form = e.target;
+            const formData = new FormData(form);
+            const id = formData.get('id');
+            const type = formData.get('type');
 
-              <div className="pt-6 flex gap-3">
-                <button type="submit" className="flex-1 bg-stone-900 hover:bg-stone-800 text-white py-3 rounded-xl font-bold transition-colors shadow-lg shadow-stone-900/20">حفظ البيانات</button>
-                <button type="button" onClick={() => setIsEditModalOpen(false)} className="px-6 bg-stone-200 hover:bg-stone-300 text-stone-800 rounded-xl font-bold transition-colors">إلغاء</button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            if (type === 'promo') {
+                menuData.promo = {
+                    id: 'promo',
+                    isActive: formData.get('isActive') === 'on',
+                    title: formData.get('title'),
+                    desc: formData.get('desc'),
+                    price: formData.get('price'),
+                    oldPrice: formData.get('oldPrice'),
+                    link: formData.get('link'),
+                    image: promoImage,
+                };
+                renderPromo();
+            } else {
+                const isFeaturesTab = activeTab === 'photography' || activeTab === 'video';
+                const newItem = {
+                    id: id ? parseInt(id) : Date.now(),
+                    name: formData.get('name'),
+                    price: formData.get('price'),
+                    images: [...formImages],
+                    isPopular: formData.get('isPopular') === 'on',
+                };
 
-      {/* CSS Utilities & Font */}
-      <style dangerouslySetInnerHTML={{__html: `
-        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800;900&display=swap');
-        
-        .font-tajawal { font-family: 'Tajawal', sans-serif; }
-        .hide-scrollbar::-webkit-scrollbar { display: none; }
-        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #f43f5e; }
-      `}} />
-    </div>
-  );
-}
+                if (isFeaturesTab) {
+                    newItem.features = formData.get('features').split('\n').filter(f => f.trim() !== '');
+                } else {
+                    newItem.desc = formData.get('desc');
+                }
 
-function TabButton({ active, onClick, icon, text, activeColor, shadowColor }) {
-  return (
-    <button onClick={onClick} className={`flex flex-col items-center justify-center gap-1 md:gap-1.5 px-4 md:px-6 py-3 md:py-4 rounded-2xl text-xs md:text-sm font-bold transition-all duration-300 min-w-[100px] md:min-w-[120px] snap-center border
-        ${active ? `bg-gradient-to-br ${activeColor} text-white border-transparent shadow-lg ${shadowColor} scale-105 z-10` : 'bg-white/50 border-white text-stone-600 hover:bg-white hover:text-rose-600 hover:shadow-md'}`}>
-      {icon} 
-      <span>{text}</span>
-    </button>
-  );
-}
+                if (id) {
+                    menuData[activeTab] = menuData[activeTab].map(item => item.id == id ? newItem : item);
+                } else {
+                    menuData[activeTab].push(newItem);
+                }
+                renderItems();
+            }
+
+            closeEditModal();
+        }
+
+        // Start App
+        document.addEventListener('DOMContentLoaded', initApp);
+
+    </script>
+</body>
+</html>
