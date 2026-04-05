@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mahmoud Elmrakby - Photography Studio</title>
+    <title>Mrakby - Photography Studio</title>
     
     <!-- Favicon (أيقونة التبويب) -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📸</text></svg>">
@@ -86,7 +86,6 @@
 
         const initFirebase = async () => {
             let config = null;
-            // استخدام الإعدادات الخاصة بك مباشرة
             if (firebaseConfig && firebaseConfig.apiKey) {
                 config = firebaseConfig;
             } else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
@@ -177,12 +176,6 @@
                                 <p class="text-[9px] md:text-[10px] text-stone-500 uppercase tracking-[0.3em] font-bold -mt-1 text-center">Photography Studio</p>
                             </div>
                         </div>
-                        ${state.isAdmin ? `
-                        <div class="absolute left-0">
-                            <button onclick="toggleEditMode()" class="hidden md:flex shrink-0 items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${state.isEditMode ? 'bg-red-500 text-white shadow-lg' : 'bg-white/50 text-stone-600 border border-white/60 hover:text-rose-600 hover:bg-white shadow-sm'}">
-                                <i data-lucide="settings" class="w-4 h-4"></i> ${state.isEditMode ? 'إغلاق وضع التعديل' : 'تعديل المينيو'}
-                            </button>
-                        </div>` : ''}
                     </div>
                     <div class="pb-3 flex justify-center w-full overflow-hidden">
                         <nav class="flex items-center gap-1 bg-white/40 border border-white/50 shadow-sm p-1.5 rounded-2xl w-full md:w-max overflow-x-auto hide-scrollbar">
@@ -205,8 +198,6 @@
             const c = document.getElementById('promo-container');
             const html = (promo && promo.isActive) ? `
                 <div onclick="openBookingModal('promo')" class="cursor-pointer relative w-full max-w-4xl mx-auto rounded-[1.5rem] md:rounded-[2rem] overflow-hidden shadow-lg md:shadow-2xl mb-8 md:mb-12 group bg-gradient-to-br from-rose-600 via-pink-600 to-purple-700 text-white flex flex-row min-h-[140px] md:min-h-[180px] items-center transition-transform hover:scale-[1.02]">
-                    ${state.isEditMode ? `<button onclick="event.stopPropagation(); openEditModal('promo')" class="absolute top-2 right-2 z-30 p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-lg transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button>` : ''}
-                    
                     <div class="absolute inset-y-0 right-0 w-2/5 md:w-5/12 overflow-hidden bg-stone-900 z-0">
                         ${promo.images.map((img, i) => `<img src="${img}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ease-in-out group-hover:scale-110 ${i === state.currentPromoIdx ? 'opacity-100' : 'opacity-0'}" />`).join('')}
                         <div class="absolute inset-0 bg-gradient-to-l from-transparent to-rose-900/80 z-10 pointer-events-none"></div>
@@ -234,11 +225,6 @@
             return `
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 relative">
                 <h2 class="text-2xl md:text-3xl font-black text-stone-800 tracking-tight flex items-center gap-2">استكشف خدماتنا <span class="text-xl">✨</span></h2>
-                ${state.isEditMode ? `
-                <div class="flex items-center gap-2 w-full md:w-auto">
-                    <button onclick="openEditModal('notes')" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-lg"><i data-lucide="pencil" class="w-4 h-4"></i> الملاحظات</button>
-                    <button onclick="openEditModal(null)" class="flex-1 md:flex-none flex items-center justify-center gap-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white px-5 py-2.5 rounded-full text-xs font-bold transition-all shadow-lg"><i data-lucide="plus" class="w-4 h-4"></i> إضافة باقة</button>
-                </div>` : ''}
             </div>`;
         }
 
@@ -256,12 +242,9 @@
             const t = state.activeTab;
             const th = categoryThemes[t] || categoryThemes.photography;
 
-            const editBtns = (id) => state.isEditMode ? `<div class="absolute top-2 right-2 z-20 flex gap-2"><button onclick="event.stopPropagation(); openEditModal(${id})" class="p-2 bg-white/90 backdrop-blur text-blue-600 rounded-full hover:bg-blue-600 hover:text-white shadow-sm transition-all"><i data-lucide="pencil" class="w-4 h-4"></i></button><button onclick="event.stopPropagation(); deleteItem(${id})" class="p-2 bg-white/90 backdrop-blur text-red-600 rounded-full hover:bg-red-600 hover:text-white shadow-sm transition-all"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div>` : '';
-
             if (t === 'photography' || t === 'video') {
                 html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">` + items.map(pkg => `
                     <div class="relative ${th.cardBg} backdrop-blur-lg rounded-[2rem] border-[3px] flex flex-col overflow-hidden transition-all duration-300 hover:-translate-y-2 group ${pkg.isPopular ? th.borderPop : th.borderNorm}">
-                        ${editBtns(pkg.id)}
                         ${pkg.isPopular ? `<div class="absolute top-4 left-4 z-20 ${th.badge} text-white px-4 py-1.5 rounded-full text-xs font-bold tracking-wider uppercase flex items-center gap-1 shadow-lg shadow-orange-500/30"><i data-lucide="star" class="w-3 h-3 fill-current"></i> الأكثر طلباً</div>` : ''}
                         <div class="relative h-56 w-full flex gap-1 bg-stone-100">
                             ${pkg.images && pkg.images.length > 0 ? `
@@ -287,7 +270,6 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         ${mainItems.map(item => `
                             <div class="relative ${th.cardBg} backdrop-blur-lg border-2 rounded-3xl overflow-hidden transition-all group flex items-center p-3 gap-4 hover:-translate-y-1 ${th.borderNorm}">
-                                ${editBtns(item.id)}
                                 <div class="w-24 h-24 shrink-0 rounded-xl overflow-hidden bg-stone-100 relative">
                                     ${item.images?.[0] ? `<img src="${item.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />` : `<div class="w-full h-full flex items-center justify-center"><i data-lucide="focus" class="w-6 h-6 text-stone-400"></i></div>`}
                                     <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-transparent mix-blend-overlay"></div>
@@ -306,7 +288,6 @@
                             ${miniItems.map(item => {
                                 const isAdded = state.selectedAddons.some(a => a.id === item.id);
                                 return `<div class="relative bg-white/80 backdrop-blur-lg border ${isAdded ? 'border-emerald-400 shadow-md' : 'border-indigo-100 shadow-sm'} rounded-2xl p-4 flex flex-col transition-all group hover:-translate-y-1">
-                                    ${editBtns(item.id)}
                                     <h4 class="font-bold text-stone-900 text-sm mb-1 pr-1">${item.name}</h4>
                                     <p class="text-xs text-stone-500 mb-4 flex-1 line-clamp-3 leading-relaxed pr-1">${item.desc}</p>
                                     <div class="flex justify-between items-center mt-auto border-t border-stone-100 pt-3">
@@ -324,7 +305,6 @@
             } else {
                 html = `<div class="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 md:gap-5 lg:gap-6">` + items.map(item => `
                     <div class="relative ${th.cardBg} backdrop-blur-lg border-2 md:border-[3px] shadow-sm md:shadow-lg rounded-xl md:rounded-2xl overflow-hidden ${th.borderNorm} hover:-translate-y-1 transition-all group flex flex-col">
-                        ${editBtns(item.id)}
                         <div class="h-32 sm:h-40 md:h-48 lg:h-64 w-full overflow-hidden bg-stone-100 relative">
                             ${item.images?.[0] ? `<img src="${item.images[0]}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />` : `<div class="w-full h-full flex items-center justify-center"><i data-lucide="image" class="w-6 h-6 md:w-8 md:h-8 text-stone-400"></i></div>`}
                             <div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
@@ -511,8 +491,6 @@
             renderApp();
         };
 
-        window.toggleEditMode = () => { state.isEditMode = !state.isEditMode; renderApp(); };
-
         // --- Client Portal ---
         window.renderPortalView = () => {
             return `
@@ -572,9 +550,6 @@
                 document.getElementById('portal-error').classList.remove('hidden');
             }
         };
-
-        window.openEditModal = (id) => { alert("التعديل متاح من خلال واجهة نظام الإدارة والحسابات المنفصلة لضمان الأمان."); };
-        window.deleteItem = (id) => { alert("الحذف متاح من خلال واجهة نظام الإدارة والحسابات المنفصلة لضمان الأمان."); };
 
         function getInitialData() {
             return {
