@@ -4,6 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tito Barber Shop</title>
+  <!-- Favicon -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💈</text></svg>">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -967,6 +969,7 @@
       if (isReturning && !showForm) {
          const lastV = new Date(state.customerRecord.lastVisitDate);
          const diffDays = Math.floor((new Date() - lastV) / (1000 * 60 * 60 * 24));
+         const exactDateStr = lastV.toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
          
          contentHTML += `
             <div class="bg-gray-900 p-6 md:p-8 rounded-2xl border border-gray-800 shadow-xl mt-4 animate-fade-in-down">
@@ -980,16 +983,17 @@
                  </div>
               </div>
               
-              <div class="grid grid-cols-2 gap-4 mb-8">
-                 <div class="bg-gray-800/50 border border-gray-700 p-4 rounded-xl text-center shadow-inner">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+                 <div class="bg-gray-800/50 border border-gray-700 p-4 rounded-xl text-center shadow-inner flex flex-col justify-center">
                     <i data-lucide="scissors" class="w-6 h-6 text-gray-500 mx-auto mb-2"></i>
-                    <p class="text-gray-400 text-sm mb-1">إجمالي الحجوزات</p>
+                    <p class="text-gray-400 text-sm mb-1">عدد مرات الحضور للصالون</p>
                     <p class="text-3xl font-black text-white">${state.customerRecord.visitCount}</p>
                  </div>
-                 <div class="bg-gray-800/50 border border-gray-700 p-4 rounded-xl text-center shadow-inner">
+                 <div class="bg-gray-800/50 border border-gray-700 p-4 rounded-xl text-center shadow-inner flex flex-col justify-center">
                     <i data-lucide="calendar-clock" class="w-6 h-6 text-gray-500 mx-auto mb-2"></i>
-                    <p class="text-gray-400 text-sm mb-1">آخر زيارة منذ</p>
-                    <p class="text-3xl font-black text-amber-500">${diffDays} <span class="text-sm text-gray-500 font-normal">يوم</span></p>
+                    <p class="text-gray-400 text-sm mb-1">آخر زيارة كانت يوم</p>
+                    <p class="text-lg font-black text-amber-500 mb-1">${exactDateStr}</p>
+                    <p class="text-xs text-gray-500">(منذ ${diffDays} يوم)</p>
                  </div>
               </div>
 
@@ -1519,7 +1523,17 @@
                   getDoc(custRef).then(snap => {
                      if(snap.exists()) {
                         const d = snap.data();
-                        contentDiv.innerHTML = `<span class="text-amber-500 font-bold bg-amber-500/10 px-2 py-1 rounded">عدد الزيارات السابقة: ${d.visitCount || 0}</span> <span class="text-gray-400 bg-gray-800 px-2 py-1 rounded">تاريخ آخر زيارة: ${new Date(d.lastVisitDate).toLocaleDateString('ar-EG')}</span>`;
+                        const dateStr = new Date(d.lastVisitDate).toLocaleDateString('ar-EG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+                        contentDiv.innerHTML = `
+                          <div class="flex flex-col sm:flex-row gap-2 w-full">
+                            <span class="text-amber-500 font-bold bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20 flex items-center gap-2">
+                               <i data-lucide="award" class="w-4 h-4"></i> عدد مرات الحضور: ${d.visitCount || 0}
+                            </span>
+                            <span class="text-gray-300 bg-gray-800 px-3 py-2 rounded-lg border border-gray-700 flex items-center gap-2">
+                               <i data-lucide="calendar-check" class="w-4 h-4"></i> آخر زيارة كانت يوم: ${dateStr}
+                            </span>
+                          </div>`;
+                        lucide.createIcons();
                      } else {
                         contentDiv.innerHTML = `<span class="text-gray-400">عميل جديد، لا يوجد سجل سابق.</span>`;
                      }
