@@ -37,8 +37,8 @@
     }
     
     /* Star Rating Hover Effects */
-    .star-rating i { transition: color 0.2s; }
-    .star-rating i:hover, .star-rating i:hover ~ i { color: #f59e0b !important; }
+    .star-rating button { transition: color 0.2s; outline: none; }
+    .star-rating button:hover, .star-rating button:hover ~ button { color: #f59e0b !important; }
     .star-rating { flex-direction: row-reverse; } 
   </style>
 </head>
@@ -78,9 +78,9 @@
         <div id="overall-rating-display" class="mb-8 text-center bg-gray-900 border border-gray-800 px-6 py-3 rounded-full flex items-center gap-3 shadow-lg">
            <!-- Dynamic Rating -->
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-3xl" id="role-cards-container">
           <!-- Customer Button -->
-          <button id="btn-role-customer" class="group relative bg-gray-900 border border-gray-800 hover:border-amber-500/50 rounded-3xl p-8 transition-all hover:transform hover:-translate-y-1 overflow-hidden text-right block w-full">
+          <button id="btn-role-customer" class="group relative bg-gray-900 border border-gray-800 hover:border-amber-500/50 rounded-3xl p-8 transition-all hover:transform hover:-translate-y-1 overflow-hidden text-right block w-full mx-auto">
             <div class="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
             <i data-lucide="user" class="w-12 h-12 text-gray-400 group-hover:text-amber-500 mb-6 transition-colors"></i>
             <h2 class="text-2xl font-bold text-white mb-2">دخول العميل</h2>
@@ -354,7 +354,6 @@
          if (state.tempBookingTime) timeEl.value = state.tempBookingTime;
       }
 
-      // Also handle admin side if present
       const adminDateEl = document.getElementById('admin-add-date');
       const adminTimeEl = document.getElementById('admin-add-time');
       if(adminDateEl && adminTimeEl) {
@@ -433,7 +432,16 @@
       const nameParam = urlParams.get('name');
       const roleParam = urlParams.get('role');
       
-      if(roleParam === 'customer') {
+      const isCustomerLink = roleParam === 'customer' || phoneParam;
+
+      if (isCustomerLink) {
+         // Hide admin role button for customer links
+         const adminBtn = document.getElementById('btn-role-admin');
+         const cardsContainer = document.getElementById('role-cards-container');
+         if (adminBtn && cardsContainer) {
+             adminBtn.remove();
+             cardsContainer.classList.remove('md:grid-cols-2');
+         }
          state.role = 'customer';
       }
       
@@ -461,7 +469,6 @@
         updateViewVisibility();
       });
 
-      // Track inputs to prevent loss on re-render
       document.addEventListener('input', (e) => {
          if (e.target.id === 'admin-add-name') state.adminAdd.name = e.target.value;
          if (e.target.id === 'admin-add-phone') state.adminAdd.phone = e.target.value;
@@ -621,7 +628,7 @@
                       <div>
                         <div class="flex items-center gap-2">
                           <span class="font-bold text-lg text-white">${customerNameDisplay}</span>
-                          <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition relative z-10" title="تعديل الاسم">
+                          <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition relative z-10" title="تعديل الاسم" onclick="event.stopPropagation();">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                           </button>
                           ${presenceBadge}
@@ -636,7 +643,7 @@
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-2 bg-gray-900 p-1.5 rounded-lg border border-gray-700 shrink-0 relative z-10">
+                  <div class="flex items-center gap-2 bg-gray-900 p-1.5 rounded-lg border border-gray-700 shrink-0 relative z-10" onclick="event.stopPropagation();">
                     <button data-action="move-up" data-idx="${idx}" class="text-gray-400 hover:text-amber-500 p-2 transition disabled:opacity-30 disabled:hover:text-gray-400" title="تقديم الدور" ${isFirst ? 'disabled' : ''}>
                       <i data-lucide="arrow-up" class="w-5 h-5"></i>
                     </button>
@@ -701,7 +708,7 @@
                </div>
                <div class="text-gray-500 text-xs flex flex-col items-end gap-1">
                  <span>رقم: ${q.ticketNumber}</span>
-                 <button data-action="delete-customer" data-id="${q.id}" class="text-gray-600 hover:text-red-400 transition relative z-10" title="حذف السجل"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                 <button data-action="delete-customer" data-id="${q.id}" class="text-gray-600 hover:text-red-400 transition relative z-10" title="حذف السجل" onclick="event.stopPropagation();"><i data-lucide="trash" class="w-4 h-4"></i></button>
                </div>
             </div>
             `;
@@ -831,15 +838,6 @@
                  <input type="time" id="shop-end-time" value="${state.shopState.workingHours?.end || '23:00'}" class="flex-1 bg-gray-800 border border-gray-700 rounded p-1 text-white text-sm" />
                </div>
                <button data-action="save-hours" class="w-full bg-gray-700 hover:bg-gray-600 text-white font-bold py-1.5 rounded text-sm transition">تحديث الأوقات</button>
-            </div>
-
-            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 flex flex-col max-h-[300px]">
-               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2 shrink-0">
-                 <i data-lucide="award" class="w-5 h-5 text-amber-500"></i> سجل الأناقة (تم الانتهاء)
-               </h3>
-               <div class="overflow-y-auto pr-2 custom-scrollbar flex-1">
-                  ${completedHTML}
-               </div>
             </div>
 
           </div>
@@ -1037,11 +1035,11 @@
                <div class="bg-gray-950 p-6 rounded-2xl border border-gray-800 inline-block">
                   <p class="text-gray-400 mb-4 text-sm">ما تقييمك لخدمتنا اليوم؟</p>
                   <div class="flex flex-row-reverse justify-center gap-2 text-gray-600 star-rating">
-                     <i data-lucide="star" data-action="submit-rating" data-val="5" class="w-10 h-10 cursor-pointer transition"></i>
-                     <i data-lucide="star" data-action="submit-rating" data-val="4" class="w-10 h-10 cursor-pointer transition"></i>
-                     <i data-lucide="star" data-action="submit-rating" data-val="3" class="w-10 h-10 cursor-pointer transition"></i>
-                     <i data-lucide="star" data-action="submit-rating" data-val="2" class="w-10 h-10 cursor-pointer transition"></i>
-                     <i data-lucide="star" data-action="submit-rating" data-val="1" class="w-10 h-10 cursor-pointer transition"></i>
+                     <button type="button" data-action="submit-rating" data-val="5" class="transition bg-transparent border-0 p-0 cursor-pointer outline-none"><i data-lucide="star" class="w-10 h-10 pointer-events-none"></i></button>
+                     <button type="button" data-action="submit-rating" data-val="4" class="transition bg-transparent border-0 p-0 cursor-pointer outline-none"><i data-lucide="star" class="w-10 h-10 pointer-events-none"></i></button>
+                     <button type="button" data-action="submit-rating" data-val="3" class="transition bg-transparent border-0 p-0 cursor-pointer outline-none"><i data-lucide="star" class="w-10 h-10 pointer-events-none"></i></button>
+                     <button type="button" data-action="submit-rating" data-val="2" class="transition bg-transparent border-0 p-0 cursor-pointer outline-none"><i data-lucide="star" class="w-10 h-10 pointer-events-none"></i></button>
+                     <button type="button" data-action="submit-rating" data-val="1" class="transition bg-transparent border-0 p-0 cursor-pointer outline-none"><i data-lucide="star" class="w-10 h-10 pointer-events-none"></i></button>
                   </div>
                </div>
             `;
@@ -1328,7 +1326,7 @@
            if(waitingQueue.length > 0) {
               const nextCust = waitingQueue[0];
               await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', nextCust.id), { status: 'active', adminMessage: 'تفضل، دورك الآن!' });
-              await updateDoc(shopRef, { currentTicket: nextCust.ticketNumber, timerEndTime: Date.now() + (30 * 60 * 1000) }); 
+              await updateDoc(shopRef, { currentTicket: nextCust.ticketNumber, timerEndTime: Date.now() + (30 * 60 * 1000) }); // Default 30 min start
            } else {
               await updateDoc(shopRef, { timerEndTime: 0, currentTicket: 0 });
               alert("تم الإنهاء، ولا يوجد عملاء في الانتظار.");
@@ -1547,6 +1545,7 @@
         renderCustomerBooking();
       }
       
+      // CONFIRM BOOKING
       if (action === 'book-ticket') {
         if (!state.customerPhone || !state.customerName) return;
         
