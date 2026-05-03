@@ -212,8 +212,9 @@
       showNewBookingForm: false,
       tempBookingDate: '', 
       tempBookingTime: '',
+      showServicesManagement: false,
       
-      // Admin Direct Add State (To keep values during re-renders)
+      // Admin Direct Add State
       adminAdd: {
          name: '',
          phone: '',
@@ -509,6 +510,10 @@
           if(!state.shopState.gallery || state.shopState.gallery.length === 0) {
              state.shopState.gallery = DEFAULT_GALLERY;
           }
+          // Ensure services and products arrays exist
+          if(!state.shopState.services) state.shopState.services = [];
+          if(!state.shopState.products) state.shopState.products = [];
+          
           updateTimerLogic();
           updateViewVisibility();
         }
@@ -605,7 +610,9 @@
           
           let presenceBadge = '';
           if(q.presenceStatus === 'here') {
-            presenceBadge = `<span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded border border-green-500/30 font-bold ml-2">متواجد</span>`;
+            presenceBadge = `<span class="bg-green-500/20 text-green-400 text-xs px-2 py-1 rounded border border-green-500/30 font-bold ml-2">متواجد بالصالون</span>`;
+          } else {
+            presenceBadge = `<span class="bg-red-500/20 text-red-400 text-xs px-2 py-1 rounded border border-red-500/30 font-bold ml-2">حجز خارجي (لم يصل)</span>`;
           }
 
           let bookingTimeDisplay = '';
@@ -626,7 +633,7 @@
                         ${q.ticketNumber}
                       </span>
                       <div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center flex-wrap gap-2">
                           <span class="font-bold text-lg text-white">${customerNameDisplay}</span>
                           <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition relative z-10" title="تعديل الاسم" onclick="event.stopPropagation();">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
@@ -643,11 +650,16 @@
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-2 bg-gray-900 p-1.5 rounded-lg border border-gray-700 shrink-0 relative z-10" onclick="event.stopPropagation();">
-                    <button data-action="move-up" data-idx="${idx}" class="text-gray-400 hover:text-amber-500 p-2 transition disabled:opacity-30 disabled:hover:text-gray-400" title="تقديم الدور" ${isFirst ? 'disabled' : ''}>
+                  <div class="flex items-center gap-1 bg-gray-900 p-1.5 rounded-lg border border-gray-700 shrink-0 relative z-10" onclick="event.stopPropagation();">
+                    <!-- Swap/Replace Button -->
+                    <button data-action="swap-with-top" data-id="${q.id}" class="text-blue-400 hover:text-blue-300 p-2 transition disabled:opacity-30 disabled:hover:text-blue-400" title="إدخال كبديل للدور الأول" ${isFirst ? 'disabled' : ''}>
+                      <i data-lucide="arrow-up-to-line" class="w-5 h-5"></i>
+                    </button>
+                    <div class="w-px h-6 bg-gray-700 mx-1"></div>
+                    <button data-action="move-up" data-idx="${idx}" class="text-gray-400 hover:text-amber-500 p-2 transition disabled:opacity-30 disabled:hover:text-gray-400" title="تقديم الدور خطوة" ${isFirst ? 'disabled' : ''}>
                       <i data-lucide="arrow-up" class="w-5 h-5"></i>
                     </button>
-                    <button data-action="move-down" data-idx="${idx}" class="text-gray-400 hover:text-amber-500 p-2 transition disabled:opacity-30 disabled:hover:text-gray-400" title="تأخير الدور" ${isLast ? 'disabled' : ''}>
+                    <button data-action="move-down" data-idx="${idx}" class="text-gray-400 hover:text-amber-500 p-2 transition disabled:opacity-30 disabled:hover:text-gray-400" title="تأخير الدور خطوة" ${isLast ? 'disabled' : ''}>
                       <i data-lucide="arrow-down" class="w-5 h-5"></i>
                     </button>
                     <div class="w-px h-6 bg-gray-700 mx-1"></div>
@@ -665,6 +677,7 @@
                  
                  <div class="flex flex-wrap gap-2 mb-3">
                     ${q.presenceStatus !== 'here' ? `<button data-action="admin-mark-here" data-id="${q.id}" class="bg-green-500/20 text-green-500 hover:bg-green-500 hover:text-white px-3 py-1.5 rounded text-sm font-bold border border-green-500/30 transition flex items-center gap-1"><i data-lucide="user-check" class="w-4 h-4"></i> تأكيد تواجد العميل بالصالون</button>` : ''}
+                    ${!isFirst ? `<button data-action="swap-with-top" data-id="${q.id}" class="bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white px-3 py-1.5 rounded text-sm font-bold border border-blue-500/30 transition flex items-center gap-1" title="استبدال بالعميل الأول في حالة عدم تواجده"><i data-lucide="arrow-up-to-line" class="w-4 h-4"></i> إدخال كبديل للدور الأول</button>` : ''}
                  </div>
 
                  <div class="bg-gray-950 rounded-xl p-3 border border-gray-800 flex flex-col sm:flex-row items-center gap-3 justify-between">
@@ -753,40 +766,56 @@
               </div>
             </div>
 
-            <!-- إعدادات معرض الصور والإعلانات -->
-            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 flex flex-col">
-               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2 shrink-0">
-                 <i data-lucide="image" class="w-5 h-5 text-amber-500"></i> معرض صور العملاء (إعلانات)
-               </h3>
-               <div class="space-y-4">
-                 <div class="flex flex-col gap-2 mb-2">
-                   <input type="file" id="input-new-gallery-file" accept="image/*" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 file:bg-gray-700 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-gray-600 transition" />
-                   <button data-action="upload-gallery" class="w-full bg-amber-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-amber-400 font-bold text-sm flex justify-center items-center gap-2">
-                     <i data-lucide="upload-cloud" class="w-4 h-4"></i> رفع الصورة للعملاء
-                   </button>
-                 </div>
-                 <div id="upload-progress" class="hidden text-amber-500 text-xs mb-2 font-bold animate-pulse text-center bg-amber-500/10 p-2 rounded">جاري معالجة ورفع الصورة... برجاء الانتظار</div>
-                 
-                 <div class="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-1 mt-4">
-                   ${(state.shopState.gallery || []).map(url => `
-                     <div class="relative group rounded-xl overflow-hidden border border-gray-700 aspect-video">
-                       <img src="${url}" class="w-full h-full object-cover" />
-                       <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full relative z-10" title="حذف الصورة">
-                           <i data-lucide="trash-2" class="w-5 h-5"></i>
-                         </button>
-                       </div>
-                     </div>
-                   `).join('')}
-                 </div>
-               </div>
-            </div>
-
             <!-- إضافة عميل مباشر متكاملة -->
             <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
-              <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                <i data-lucide="user-plus" class="w-5 h-5 text-amber-500"></i> إضافة عميل مباشر بالصالون
-              </h3>
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-white flex items-center gap-2">
+                  <i data-lucide="user-plus" class="w-5 h-5 text-amber-500"></i> إضافة عميل مباشر بالصالون
+                </h3>
+                <button data-action="toggle-services-management" class="text-gray-400 hover:text-amber-500 transition bg-gray-800 p-1.5 rounded-lg border border-gray-700 hover:border-amber-500/50" title="إدارة الخدمات والمنتجات">
+                  <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+              </div>
+
+              <!-- Services Management Panel (Toggled) -->
+              <div class="${state.showServicesManagement ? 'block' : 'hidden'} mb-6 p-4 bg-gray-800/50 rounded-xl border border-gray-700 animate-fade-in-down">
+                 <h4 class="text-amber-500 font-bold mb-3 text-sm flex items-center gap-2"><i data-lucide="settings-2" class="w-4 h-4"></i> إعدادات القوائم</h4>
+                 <div class="space-y-4">
+                    <!-- Services -->
+                    <div>
+                       <p class="text-xs text-gray-400 mb-2 font-bold">إدارة الخدمات:</p>
+                       <div class="flex gap-2 mb-2">
+                          <input type="text" id="new-service-input" class="flex-1 bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-amber-500 outline-none" placeholder="اسم الخدمة الجديدة...">
+                          <button data-action="add-new-service" class="bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-gray-900 px-3 py-1 rounded text-xs font-bold transition">إضافة</button>
+                       </div>
+                       <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar">
+                          ${(state.shopState.services || []).map(s => `
+                             <span class="bg-gray-900 text-gray-300 px-2 py-1 rounded flex items-center gap-1 text-xs border border-gray-700 group">
+                                ${s} 
+                                <button data-action="remove-service" data-val="${s}" class="text-red-500/50 hover:text-red-500 transition"><i data-lucide="x" class="w-3 h-3 pointer-events-none"></i></button>
+                             </span>
+                          `).join('')}
+                       </div>
+                    </div>
+                    <!-- Products -->
+                    <div class="border-t border-gray-700 pt-3">
+                       <p class="text-xs text-gray-400 mb-2 font-bold">إدارة المنتجات:</p>
+                       <div class="flex gap-2 mb-2">
+                          <input type="text" id="new-product-input" class="flex-1 bg-gray-900 border border-gray-700 rounded p-2 text-xs text-white focus:border-amber-500 outline-none" placeholder="اسم المنتج الجديد...">
+                          <button data-action="add-new-product" class="bg-amber-500/20 text-amber-500 hover:bg-amber-500 hover:text-gray-900 px-3 py-1 rounded text-xs font-bold transition">إضافة</button>
+                       </div>
+                       <div class="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto custom-scrollbar">
+                          ${(state.shopState.products || []).map(p => `
+                             <span class="bg-gray-900 text-gray-300 px-2 py-1 rounded flex items-center gap-1 text-xs border border-gray-700 group">
+                                ${p} 
+                                <button data-action="remove-product" data-val="${p}" class="text-red-500/50 hover:text-red-500 transition"><i data-lucide="x" class="w-3 h-3 pointer-events-none"></i></button>
+                             </span>
+                          `).join('')}
+                       </div>
+                    </div>
+                 </div>
+              </div>
+
               <div class="space-y-3">
                 <input type="text" id="admin-add-name" value="${state.adminAdd.name}" placeholder="اسم العميل..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 outline-none text-sm">
                 <input type="tel" id="admin-add-phone" value="${state.adminAdd.phone}" placeholder="رقم الهاتف (اختياري)..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 outline-none text-sm" dir="ltr">
@@ -824,6 +853,35 @@
               </div>
             </div>
 
+            <!-- إعدادات معرض الصور والإعلانات -->
+            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 flex flex-col">
+               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2 shrink-0">
+                 <i data-lucide="image" class="w-5 h-5 text-amber-500"></i> معرض صور الإعلانات
+               </h3>
+               <div class="space-y-4">
+                 <div class="flex flex-col gap-2 mb-2">
+                   <input type="file" id="input-new-gallery-file" accept="image/*" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 file:bg-gray-700 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-gray-600 transition" />
+                   <button data-action="upload-gallery" class="w-full bg-amber-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-amber-400 font-bold text-sm flex justify-center items-center gap-2">
+                     <i data-lucide="upload-cloud" class="w-4 h-4"></i> رفع الصورة للعملاء
+                   </button>
+                 </div>
+                 <div id="upload-progress" class="hidden text-amber-500 text-xs mb-2 font-bold animate-pulse text-center bg-amber-500/10 p-2 rounded">جاري معالجة ورفع الصورة... برجاء الانتظار</div>
+                 
+                 <div class="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-1 mt-4">
+                   ${(state.shopState.gallery || []).map(url => `
+                     <div class="relative group rounded-xl overflow-hidden border border-gray-700 aspect-video">
+                       <img src="${url}" class="w-full h-full object-cover" />
+                       <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full relative z-10" title="حذف الصورة">
+                           <i data-lucide="trash-2" class="w-5 h-5"></i>
+                         </button>
+                       </div>
+                     </div>
+                   `).join('')}
+                 </div>
+               </div>
+            </div>
+
             <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
                <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
                  <i data-lucide="clock" class="w-5 h-5 text-amber-500"></i> تحديد أوقات العمل
@@ -857,6 +915,7 @@
             <div class="bg-gray-950 p-4 border border-gray-800 overflow-y-auto pr-2 custom-scrollbar flex-1 rounded-b-2xl shadow-inner">
               ${queueHTML}
             </div>
+
           </div>
         </div>
       `;
@@ -1227,6 +1286,117 @@
       const action = target.getAttribute('data-action');
       const shopRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop', 'info');
 
+      // --- New feature: Dynamic Services & Products ---
+      if (action === 'toggle-services-management') {
+         state.showServicesManagement = !state.showServicesManagement;
+         renderAdminPanel();
+      }
+
+      if (action === 'add-new-service') {
+         const inputEl = document.getElementById('new-service-input');
+         const val = inputEl.value.trim();
+         if (val && !state.shopState.services.includes(val)) {
+             const newServices = [...(state.shopState.services || []), val];
+             await updateDoc(shopRef, { services: newServices });
+             inputEl.value = '';
+         }
+      }
+      if (action === 'remove-service') {
+         const val = target.getAttribute('data-val');
+         if (confirm(`هل تريد حذف خدمة (${val})؟`)) {
+             const newServices = state.shopState.services.filter(s => s !== val);
+             await updateDoc(shopRef, { services: newServices });
+         }
+      }
+      if (action === 'add-new-product') {
+         const inputEl = document.getElementById('new-product-input');
+         const val = inputEl.value.trim();
+         if (val && !state.shopState.products.includes(val)) {
+             const newProducts = [...(state.shopState.products || []), val];
+             await updateDoc(shopRef, { products: newProducts });
+             inputEl.value = '';
+         }
+      }
+      if (action === 'remove-product') {
+         const val = target.getAttribute('data-val');
+         if (confirm(`هل تريد حذف منتج (${val})؟`)) {
+             const newProducts = state.shopState.products.filter(p => p !== val);
+             await updateDoc(shopRef, { products: newProducts });
+         }
+      }
+
+      // --- New feature: Swap Queue Placement ---
+      if (action === 'swap-with-top') {
+         const id = target.getAttribute('data-id');
+         const waitingQueue = state.queue.filter(q => q.status === 'waiting');
+         const targetIndex = waitingQueue.findIndex(q => q.id === id);
+         
+         if (targetIndex > 0) { // Should not be already at top
+            const topCust = waitingQueue[0];
+            const thisCust = waitingQueue[targetIndex];
+
+            if (topCust && topCust.id !== thisCust.id) {
+               if(confirm(`سيتم استبدال دور ${topCust.name || 'العميل الأول'} (رقم ${topCust.ticketNumber}) بـ ${thisCust.name || 'هذا العميل'}. هل أنت متأكد؟`)) {
+                  
+                  // Swap ticket numbers to swap their positions seamlessly
+                  const tempTicket = topCust.ticketNumber;
+                  const tempDate = topCust.bookingDate;
+                  const tempTime = topCust.bookingTime;
+
+                  // Move Top customer to this customer's place
+                  await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', topCust.id), {
+                     ticketNumber: thisCust.ticketNumber,
+                     bookingDate: thisCust.bookingDate,
+                     bookingTime: thisCust.bookingTime
+                  });
+
+                  // Move this customer to the Top
+                  await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', thisCust.id), {
+                     ticketNumber: tempTicket,
+                     bookingDate: tempDate,
+                     bookingTime: tempTime,
+                     presenceStatus: 'here' // Ensure they are marked present since they are walking in
+                  });
+               }
+            }
+         } else {
+             alert("هذا العميل هو بالفعل في الدور الأول.");
+         }
+      }
+
+      // --- Move Up / Move Down (Normal Reordering) ---
+      if (action === 'move-up' || action === 'move-down') {
+         const idxStr = target.getAttribute('data-idx');
+         if(idxStr === null) return;
+         
+         const idx = parseInt(idxStr);
+         const waitingQueue = state.queue.filter(q => q.status === 'waiting');
+         
+         if (action === 'move-up' && idx > 0) {
+            const current = waitingQueue[idx];
+            const previous = waitingQueue[idx - 1];
+            
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', current.id), {
+               ticketNumber: previous.ticketNumber, bookingDate: previous.bookingDate, bookingTime: previous.bookingTime
+            });
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', previous.id), {
+               ticketNumber: current.ticketNumber, bookingDate: current.bookingDate, bookingTime: current.bookingTime
+            });
+         }
+         
+         if (action === 'move-down' && idx < waitingQueue.length - 1) {
+            const current = waitingQueue[idx];
+            const next = waitingQueue[idx + 1];
+            
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', current.id), {
+               ticketNumber: next.ticketNumber, bookingDate: next.bookingDate, bookingTime: next.bookingTime
+            });
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', next.id), {
+               ticketNumber: current.ticketNumber, bookingDate: current.bookingDate, bookingTime: current.bookingTime
+            });
+         }
+      }
+
       // Add Gallery Image (Using Base64 compression to bypass Storage rules & limits)
       if (action === 'upload-gallery') {
          const fileInput = document.getElementById('input-new-gallery-file');
@@ -1335,7 +1505,6 @@
       }
 
       if (action === 'toggle-details') {
-          // Prevent toggle if a button inside the div was clicked
           if (e.target.closest('button[data-action]')) return;
 
           const id = target.getAttribute('data-id');
