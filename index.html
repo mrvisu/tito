@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tito Barber Shop</title>
   <!-- Favicon -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💈</text></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✂️</text></svg>">
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
@@ -369,7 +369,7 @@
       if(state.customerPhone) {
         try {
           const url = new URL(window.location);
-          if (url.protocol !== 'blob:') {
+          if (url.protocol !== 'blob:' && url.origin !== 'null') {
              url.searchParams.set('phone', state.customerPhone);
              if(state.customerName) url.searchParams.set('name', state.customerName);
              window.history.pushState({}, '', url);
