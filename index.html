@@ -145,7 +145,7 @@
     <!-- VIEW: Customer Dashboard (Active Waiting / Rating) -->
     <div id="view-customer-dashboard" class="hidden-view max-w-2xl mx-auto space-y-6">
       <!-- Athkar Ticker -->
-      <div class="marquee-container bg-amber-500/10 border border-amber-500/30 text-amber-500 py-2 rounded-xl text-sm font-bold shadow-inner">
+      <div class="marquee-container bg-amber-500/10 border border-amber-500/30 text-amber-500 py-2 rounded-xl text-sm font-bold shadow-inner mb-6">
         <div class="animate-marquee">
           سبحان الله وبحمده، سبحان الله العظيم ❀ اللهم صل وسلم وبارك على نبينا محمد ❀ أستغفر الله العظيم الذي لا إله إلا هو الحي القيوم وأتوب إليه ❀ لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير ❀ لا حول ولا قوة إلا بالله ❀ الحمد لله رب العالمين
         </div>
@@ -177,6 +177,13 @@
     const db = getFirestore(app);
     const appId = 'tito-barber-app';
 
+    // Default Images for the slider
+    const DEFAULT_GALLERY = [
+       "https://images.unsplash.com/photo-1585747860715-2ba37e788b70?w=800&q=80",
+       "https://images.unsplash.com/photo-1503951914875-452162b0f3f1?w=800&q=80",
+       "https://images.unsplash.com/photo-1599351431202-1e0f0137899a?w=800&q=80"
+    ];
+
     // --- App State ---
     let state = {
       user: null,
@@ -191,7 +198,8 @@
         ratingSum: 0,
         workingHours: { start: "10:00", end: "23:00" }, 
         services: ["حلاقة شعر", "عمل فتلة", "ماسك للوجه", "حمام بخار", "فرد شعر"],
-        products: ["جيل تصفيف", "كريم شعر", "زيت لحية"]
+        products: ["جيل تصفيف", "كريم شعر", "زيت لحية"],
+        gallery: DEFAULT_GALLERY
       },
       queue: [],
       customerPhone: '',
@@ -202,11 +210,12 @@
       selectedServices: [],
       selectedProducts: [],
       showNewBookingForm: false,
-      tempBookingDate: '', // Added to save date selections during re-renders
-      tempBookingTime: ''  // Added to save time selections during re-renders
+      tempBookingDate: '', 
+      tempBookingTime: ''  
     };
 
     let timerInterval = null;
+    let sliderInterval = null;
     let unsubShop = null;
     let unsubQueue = null;
 
@@ -239,6 +248,54 @@
       });
     };
     window.copyToClipboard = copyToClipboard;
+
+    const initSlider = () => {
+      if(sliderInterval) clearInterval(sliderInterval);
+      const images = document.querySelectorAll('.slider-img');
+      const dots = document.querySelectorAll('.slider-dot');
+      if(!images || images.length <= 1) return;
+      
+      let currentSlide = 0;
+      sliderInterval = setInterval(() => {
+          images.forEach(img => {
+             img.classList.remove('opacity-100');
+             img.classList.add('opacity-0');
+          });
+          dots.forEach(dot => {
+             dot.classList.remove('bg-amber-500', 'w-4');
+             dot.classList.add('bg-white/50', 'w-2');
+          });
+          currentSlide = (currentSlide + 1) % images.length;
+          images[currentSlide].classList.remove('opacity-0');
+          images[currentSlide].classList.add('opacity-100');
+          if(dots[currentSlide]) {
+             dots[currentSlide].classList.remove('bg-white/50', 'w-2');
+             dots[currentSlide].classList.add('bg-amber-500', 'w-4');
+          }
+      }, 4000);
+    };
+
+    const getGalleryHTML = () => {
+       const gallery = state.shopState.gallery || [];
+       if(gallery.length === 0) return '';
+       return `
+          <div class="relative w-full h-48 md:h-64 rounded-3xl overflow-hidden shadow-2xl border border-gray-800 mb-8 group animate-fade-in-down">
+             ${gallery.map((url, i) => `
+                <img src="${url}" class="absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${i===0 ? 'opacity-100' : 'opacity-0'} slider-img" alt="إعلان الصالون" />
+             `).join('')}
+             <div class="absolute inset-0 bg-gradient-to-t from-gray-950 via-gray-900/40 to-transparent opacity-90"></div>
+             <div class="absolute bottom-4 right-6 left-6 flex justify-between items-end">
+                <div>
+                  <h3 class="text-white font-black text-2xl drop-shadow-md">صالون تيتو</h3>
+                  <p class="text-amber-500 font-bold text-sm drop-shadow-md">أناقة وتميز في كل تفصيلة</p>
+                </div>
+                <div class="flex gap-1.5 mb-1">
+                   ${gallery.map((_, i) => `<div class="h-2 rounded-full transition-all duration-500 slider-dot ${i===0?'bg-amber-500 w-4':'bg-white/50 w-2'}"></div>`).join('')}
+                </div>
+             </div>
+          </div>
+       `;
+    };
 
     const updateBookingTimes = () => {
       const dateEl = document.getElementById('input-booking-date');
@@ -410,6 +467,7 @@
       const queueCol = collection(db, 'artifacts', appId, 'public', 'data', 'queue');
 
       try {
+        // Initialize with default gallery if not exists
         await setDoc(shopRef, state.shopState, { merge: true });
       } catch (e) { console.error("Init shop error", e); }
 
@@ -417,6 +475,10 @@
       unsubShop = onSnapshot(shopRef, (docSnap) => {
         if (docSnap.exists()) {
           state.shopState = { ...state.shopState, ...docSnap.data() };
+          // Ensure gallery defaults if empty
+          if(!state.shopState.gallery || state.shopState.gallery.length === 0) {
+             state.shopState.gallery = DEFAULT_GALLERY;
+          }
           updateTimerLogic();
           updateViewVisibility();
         }
@@ -635,7 +697,7 @@
           </button>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
           <div class="lg:col-span-1 space-y-6">
             
             <div class="bg-gray-900 rounded-2xl p-6 border border-amber-500/30 relative overflow-hidden shadow-lg">
@@ -657,6 +719,31 @@
                    ` : ''}
                 </div>
               </div>
+            </div>
+
+            <!-- إعدادات معرض الصور والإعلانات -->
+            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 flex flex-col">
+               <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2 shrink-0">
+                 <i data-lucide="image" class="w-5 h-5 text-amber-500"></i> معرض صور العملاء (إعلانات)
+               </h3>
+               <div class="space-y-4">
+                 <div class="flex gap-2 mb-2">
+                   <input type="text" id="input-new-gallery" placeholder="أدخل رابط الصورة (URL)..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" dir="ltr" />
+                   <button data-action="add-gallery" class="bg-amber-500 text-gray-900 px-4 rounded-lg hover:bg-amber-400 font-bold text-sm">إضافة</button>
+                 </div>
+                 <div class="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                   ${(state.shopState.gallery || []).map(url => `
+                     <div class="relative group rounded-xl overflow-hidden border border-gray-700 aspect-video">
+                       <img src="${url}" class="w-full h-full object-cover" />
+                       <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full">
+                           <i data-lucide="trash-2" class="w-5 h-5"></i>
+                         </button>
+                       </div>
+                     </div>
+                   `).join('')}
+                 </div>
+               </div>
             </div>
 
             <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
@@ -726,7 +813,7 @@
       
       const showForm = !isReturning || state.showNewBookingForm;
 
-      let contentHTML = '';
+      let contentHTML = getGalleryHTML(); // Prepend Gallery Slider
 
       if (!isOpen) {
         contentHTML += `
@@ -845,6 +932,7 @@
 
       container.innerHTML = contentHTML;
       lucide.createIcons();
+      initSlider();
       if(showForm) {
          setTimeout(updateBookingTimes, 0); 
       }
@@ -853,6 +941,8 @@
     const renderCustomerDashboard = () => {
       const container = document.getElementById('customer-dashboard-content');
       
+      let htmlContent = getGalleryHTML(); // Prepend Gallery Slider
+
       // 1) COMPLETED STATUS - RATE EXPERIENCE
       if (state.myTicket.status === 'completed') {
          let ratingUI = '';
@@ -873,7 +963,7 @@
             `;
          }
 
-         container.innerHTML = `
+         htmlContent += `
             <div class="bg-gray-900 border border-amber-500/50 p-8 rounded-3xl shadow-[0_0_40px_rgba(245,158,11,0.2)] text-center animate-fade-in-down mt-8">
                <div class="w-24 h-24 bg-gradient-to-br from-amber-400 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl relative">
                   <i data-lucide="check" class="w-12 h-12 text-gray-900 font-black"></i>
@@ -887,13 +977,15 @@
                </div>
             </div>
          `;
+         container.innerHTML = htmlContent;
          lucide.createIcons();
+         initSlider();
          return;
       }
 
       // 2) ACTIVE ON CHAIR STATUS
       if (state.myTicket.status === 'active') {
-          container.innerHTML = `
+          htmlContent += `
              <div class="bg-gray-900 border border-amber-500/50 p-8 rounded-3xl shadow-[0_0_30px_rgba(245,158,11,0.15)] text-center animate-fade-in-down mt-8">
                 <div class="w-24 h-24 bg-amber-500 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl">
                    <i data-lucide="scissors" class="w-12 h-12 text-gray-900"></i>
@@ -903,7 +995,9 @@
                 <p class="text-gray-400">نتمنى لك تجربة رائعة في صالون تيتو.</p>
              </div>
           `;
+          container.innerHTML = htmlContent;
           lucide.createIcons();
+          initSlider();
           return; 
       }
       
@@ -982,7 +1076,7 @@
       let bookingInfo = (state.myTicket.bookingDate && state.myTicket.bookingTime) ? 
           `<div class="bg-amber-500/10 border border-amber-500/20 text-amber-500 px-4 py-2 rounded-xl mb-6 font-bold flex items-center justify-center gap-2"><i data-lucide="calendar-clock" class="w-5 h-5"></i> موعدك: ${state.myTicket.bookingDate} الساعة ${state.myTicket.bookingTime}</div>` : '';
 
-      container.innerHTML = `
+      htmlContent += `
         ${shareLinkHTML}
         ${warningCardHTML}
         ${adminMsgHTML}
@@ -1038,7 +1132,9 @@
           </div>
         ` : ''}
       `;
+      container.innerHTML = htmlContent;
       lucide.createIcons();
+      initSlider();
     };
 
     // --- Action Handlers (Event Delegation) ---
@@ -1048,6 +1144,25 @@
       
       const action = target.getAttribute('data-action');
       const shopRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop', 'info');
+
+      // Add Gallery Image
+      if (action === 'add-gallery') {
+         const urlInput = document.getElementById('input-new-gallery').value.trim();
+         if (urlInput) {
+            const currentGallery = state.shopState.gallery || [];
+            await updateDoc(shopRef, { gallery: [...currentGallery, urlInput] });
+            document.getElementById('input-new-gallery').value = '';
+         }
+      }
+      
+      // Remove Gallery Image
+      if (action === 'remove-gallery') {
+         const urlToRemove = target.getAttribute('data-val');
+         if(urlToRemove) {
+            const newGallery = (state.shopState.gallery || []).filter(u => u !== urlToRemove);
+            await updateDoc(shopRef, { gallery: newGallery });
+         }
+      }
 
       if (action === 'toggle-shop') {
         await updateDoc(shopRef, { isOpen: !state.shopState.isOpen });
