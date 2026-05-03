@@ -367,10 +367,16 @@
 
     const updateURLWithPhone = () => {
       if(state.customerPhone) {
-        const url = new URL(window.location);
-        url.searchParams.set('phone', state.customerPhone);
-        if(state.customerName) url.searchParams.set('name', state.customerName);
-        window.history.pushState({}, '', url);
+        try {
+          const url = new URL(window.location);
+          if (url.protocol !== 'blob:') {
+             url.searchParams.set('phone', state.customerPhone);
+             if(state.customerName) url.searchParams.set('name', state.customerName);
+             window.history.pushState({}, '', url);
+          }
+        } catch(e) {
+          console.warn("URL update blocked by environment restrictions", e);
+        }
       }
     };
 
@@ -1794,7 +1800,11 @@
         state.showNewBookingForm = false;
         state.tempBookingDate = '';
         state.tempBookingTime = '';
-        window.history.pushState({}, '', window.location.pathname); 
+        try {
+           if (window.location.protocol !== 'blob:') {
+              window.history.pushState({}, '', window.location.pathname); 
+           }
+        } catch(e) { console.warn("URL update blocked by environment restrictions", e); }
         updateViewVisibility();
       }
     });
