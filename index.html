@@ -39,7 +39,7 @@
     /* Star Rating Hover Effects */
     .star-rating i { transition: color 0.2s; }
     .star-rating i:hover, .star-rating i:hover ~ i { color: #f59e0b !important; }
-    .star-rating { flex-direction: row-reverse; } /* Reverse for RTL hover trick */
+    .star-rating { flex-direction: row-reverse; } 
   </style>
 </head>
 <body class="bg-gray-950 text-gray-100 font-sans min-h-screen">
@@ -211,7 +211,17 @@
       selectedProducts: [],
       showNewBookingForm: false,
       tempBookingDate: '', 
-      tempBookingTime: ''  
+      tempBookingTime: '',
+      
+      // Admin Direct Add State (To keep values during re-renders)
+      adminAdd: {
+         name: '',
+         phone: '',
+         date: '',
+         time: '',
+         services: [],
+         products: []
+      }
     };
 
     let timerInterval = null;
@@ -297,18 +307,8 @@
        `;
     };
 
-    const updateBookingTimes = () => {
-      const dateEl = document.getElementById('input-booking-date');
-      const timeEl = document.getElementById('input-booking-time');
-      if(!dateEl || !timeEl) return;
-      
-      const selDate = dateEl.value;
-      if(!selDate) {
-         timeEl.innerHTML = '<option value="">اختر التاريخ أولاً...</option>';
-         timeEl.disabled = true;
-         return;
-      }
-      timeEl.disabled = false;
+    const getAvailableTimesHTML = (selDate) => {
+      if(!selDate) return '<option value="">اختر التاريخ أولاً...</option>';
 
       const start = state.shopState.workingHours?.start || '10:00';
       const end = state.shopState.workingHours?.end || '23:00';
@@ -342,11 +342,24 @@
       if(!foundAvailable) {
          options = '<option value="">عفواً، لا توجد أوقات متاحة في هذا اليوم</option>';
       }
-      timeEl.innerHTML = options;
+      return options;
+    };
 
-      // Restore previously selected time if it's still available
-      if (state.tempBookingTime) {
-         timeEl.value = state.tempBookingTime;
+    const updateBookingTimes = () => {
+      const dateEl = document.getElementById('input-booking-date');
+      const timeEl = document.getElementById('input-booking-time');
+      if(dateEl && timeEl) {
+         timeEl.innerHTML = getAvailableTimesHTML(dateEl.value);
+         timeEl.disabled = !dateEl.value;
+         if (state.tempBookingTime) timeEl.value = state.tempBookingTime;
+      }
+
+      // Also handle admin side if present
+      const adminDateEl = document.getElementById('admin-add-date');
+      const adminTimeEl = document.getElementById('admin-add-time');
+      if(adminDateEl && adminTimeEl) {
+         adminTimeEl.innerHTML = getAvailableTimesHTML(adminDateEl.value);
+         if(state.adminAdd.time) adminTimeEl.value = state.adminAdd.time;
       }
     };
 
@@ -448,7 +461,12 @@
         updateViewVisibility();
       });
 
-      // Keep track of user inputs to avoid resets during re-renders
+      // Track inputs to prevent loss on re-render
+      document.addEventListener('input', (e) => {
+         if (e.target.id === 'admin-add-name') state.adminAdd.name = e.target.value;
+         if (e.target.id === 'admin-add-phone') state.adminAdd.phone = e.target.value;
+      });
+
       document.addEventListener('change', (e) => {
          if (e.target.id === 'input-booking-date') {
              state.tempBookingDate = e.target.value;
@@ -456,6 +474,13 @@
          }
          if (e.target.id === 'input-booking-time') {
              state.tempBookingTime = e.target.value;
+         }
+         if (e.target.id === 'admin-add-date') {
+             state.adminAdd.date = e.target.value;
+             updateBookingTimes();
+         }
+         if (e.target.id === 'admin-add-time') {
+             state.adminAdd.time = e.target.value;
          }
       });
     };
@@ -467,7 +492,6 @@
       const queueCol = collection(db, 'artifacts', appId, 'public', 'data', 'queue');
 
       try {
-        // Initialize with default gallery if not exists
         await setDoc(shopRef, state.shopState, { merge: true });
       } catch (e) { console.error("Init shop error", e); }
 
@@ -475,7 +499,6 @@
       unsubShop = onSnapshot(shopRef, (docSnap) => {
         if (docSnap.exists()) {
           state.shopState = { ...state.shopState, ...docSnap.data() };
-          // Ensure gallery defaults if empty
           if(!state.shopState.gallery || state.shopState.gallery.length === 0) {
              state.shopState.gallery = DEFAULT_GALLERY;
           }
@@ -562,6 +585,7 @@
       const waitingQueue = state.queue.filter(q => q.status === 'waiting');
       const completedQueue = state.queue.filter(q => q.status === 'completed');
       const isOpen = state.shopState.isOpen;
+      const today = new Date().toISOString().split('T')[0];
 
       let queueHTML = '';
       if (waitingQueue.length === 0) {
@@ -588,17 +612,16 @@
               
               <div class="p-4 cursor-pointer hover:bg-gray-700/30 transition" data-action="toggle-details" data-id="${q.id}" data-phone="${q.phone}">
                 <div class="flex flex-col md:flex-row justify-between md:items-start gap-4">
-                  <div class="flex-1">
+                  <div class="flex-1 pointer-events-none">
                     ${bookingTimeDisplay}
-                    <div class="flex items-center gap-3 mb-2">
+                    <div class="flex items-center gap-3 mb-2 pointer-events-auto">
                       <span class="bg-amber-500 text-gray-900 font-black w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-md shrink-0">
                         ${q.ticketNumber}
                       </span>
                       <div>
                         <div class="flex items-center gap-2">
                           <span class="font-bold text-lg text-white">${customerNameDisplay}</span>
-                          <!-- The click event should not bubble up and trigger toggle-details -->
-                          <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition relative z-10" title="تعديل الاسم" onclick="event.stopPropagation();">
+                          <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition relative z-10" title="تعديل الاسم">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                           </button>
                           ${presenceBadge}
@@ -609,10 +632,11 @@
                     <div class="text-sm text-gray-300 mt-2 bg-gray-900/50 p-2 rounded-lg inline-block">
                       <span class="text-amber-500/80 font-bold">الطلبات:</span> 
                       ${q.selectedServices?.length ? q.selectedServices.join('، ') : 'بدون خدمات'} 
+                      ${q.selectedProducts?.length ? `| <span class="text-amber-500/80 font-bold">المنتجات:</span> ${q.selectedProducts.join('، ')}` : ''}
                     </div>
                   </div>
                   
-                  <div class="flex items-center gap-2 bg-gray-900 p-1.5 rounded-lg border border-gray-700 shrink-0 relative z-10" onclick="event.stopPropagation();">
+                  <div class="flex items-center gap-2 bg-gray-900 p-1.5 rounded-lg border border-gray-700 shrink-0 relative z-10">
                     <button data-action="move-up" data-idx="${idx}" class="text-gray-400 hover:text-amber-500 p-2 transition disabled:opacity-30 disabled:hover:text-gray-400" title="تقديم الدور" ${isFirst ? 'disabled' : ''}>
                       <i data-lucide="arrow-up" class="w-5 h-5"></i>
                     </button>
@@ -677,7 +701,7 @@
                </div>
                <div class="text-gray-500 text-xs flex flex-col items-end gap-1">
                  <span>رقم: ${q.ticketNumber}</span>
-                 <button data-action="delete-customer" data-id="${q.id}" class="text-gray-600 hover:text-red-400 transition relative z-10" title="حذف السجل" onclick="event.stopPropagation();"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                 <button data-action="delete-customer" data-id="${q.id}" class="text-gray-600 hover:text-red-400 transition relative z-10" title="حذف السجل"><i data-lucide="trash" class="w-4 h-4"></i></button>
                </div>
             </div>
             `;
@@ -728,16 +752,20 @@
                  <i data-lucide="image" class="w-5 h-5 text-amber-500"></i> معرض صور العملاء (إعلانات)
                </h3>
                <div class="space-y-4">
-                 <div class="flex gap-2 mb-2">
-                   <input type="text" id="input-new-gallery" placeholder="أدخل رابط الصورة (URL)..." class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" dir="ltr" />
-                   <button data-action="add-gallery" class="bg-amber-500 text-gray-900 px-4 rounded-lg hover:bg-amber-400 font-bold text-sm">إضافة</button>
+                 <div class="flex flex-col gap-2 mb-2">
+                   <input type="file" id="input-new-gallery-file" accept="image/*" class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500 file:bg-gray-700 file:text-white file:border-0 file:rounded file:px-2 file:py-1 file:cursor-pointer hover:file:bg-gray-600 transition" />
+                   <button data-action="upload-gallery" class="w-full bg-amber-500 text-gray-900 px-4 py-2 rounded-lg hover:bg-amber-400 font-bold text-sm flex justify-center items-center gap-2">
+                     <i data-lucide="upload-cloud" class="w-4 h-4"></i> رفع الصورة للعملاء
+                   </button>
                  </div>
-                 <div class="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                 <div id="upload-progress" class="hidden text-amber-500 text-xs mb-2 font-bold animate-pulse text-center bg-amber-500/10 p-2 rounded">جاري معالجة ورفع الصورة... برجاء الانتظار</div>
+                 
+                 <div class="grid grid-cols-2 gap-3 max-h-48 overflow-y-auto custom-scrollbar pr-1 mt-4">
                    ${(state.shopState.gallery || []).map(url => `
                      <div class="relative group rounded-xl overflow-hidden border border-gray-700 aspect-video">
                        <img src="${url}" class="w-full h-full object-cover" />
                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full relative z-10">
+                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full relative z-10" title="حذف الصورة">
                            <i data-lucide="trash-2" class="w-5 h-5"></i>
                          </button>
                        </div>
@@ -745,6 +773,48 @@
                    `).join('')}
                  </div>
                </div>
+            </div>
+
+            <!-- إضافة عميل مباشر متكاملة -->
+            <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
+              <h3 class="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                <i data-lucide="user-plus" class="w-5 h-5 text-amber-500"></i> إضافة عميل مباشر بالصالون
+              </h3>
+              <div class="space-y-3">
+                <input type="text" id="admin-add-name" value="${state.adminAdd.name}" placeholder="اسم العميل..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 outline-none text-sm">
+                <input type="tel" id="admin-add-phone" value="${state.adminAdd.phone}" placeholder="رقم الهاتف (اختياري)..." class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white focus:border-amber-500 outline-none text-sm" dir="ltr">
+                
+                <div class="flex gap-2">
+                  <input type="date" id="admin-add-date" min="${today}" value="${state.adminAdd.date || today}" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 text-white outline-none text-xs">
+                  <select id="admin-add-time" class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-2 py-2 text-white outline-none text-xs">
+                     <option value="">الوقت...</option>
+                  </select>
+                </div>
+
+                <div class="mt-2">
+                   <p class="text-xs text-gray-400 font-bold mb-2">الخدمات:</p>
+                   <div class="flex flex-wrap gap-1.5">
+                     ${(state.shopState.services || []).map(s => {
+                        const sel = state.adminAdd.services.includes(s);
+                        return `<button data-action="admin-toggle-service" data-val="${s}" class="px-2 py-1 rounded-md text-xs font-bold transition-colors ${sel ? 'bg-amber-500 text-gray-900' : 'bg-gray-700 text-gray-300'}">${s}</button>`;
+                     }).join('')}
+                   </div>
+                </div>
+
+                <div class="mt-2 mb-2">
+                   <p class="text-xs text-gray-400 font-bold mb-2">المنتجات:</p>
+                   <div class="flex flex-wrap gap-1.5">
+                     ${(state.shopState.products || []).map(p => {
+                        const sel = state.adminAdd.products.includes(p);
+                        return `<button data-action="admin-toggle-product" data-val="${p}" class="px-2 py-1 rounded-md text-xs font-bold transition-colors ${sel ? 'bg-amber-500 text-gray-900' : 'bg-gray-700 text-gray-300'}">${p}</button>`;
+                     }).join('')}
+                   </div>
+                </div>
+
+                <button data-action="admin-add-customer" class="w-full bg-amber-500/10 text-amber-500 hover:bg-amber-500 hover:text-gray-900 border border-amber-500/50 font-bold py-2 rounded-lg transition mt-2 flex items-center justify-center gap-2">
+                  <i data-lucide="check-circle" class="w-4 h-4"></i> تسجيل العميل
+                </button>
+              </div>
             </div>
 
             <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800">
@@ -780,23 +850,12 @@
                  <i data-lucide="users" class="w-6 h-6 text-amber-500"></i> قائمة الانتظار (${waitingQueue.length})
                </h3>
                <div class="flex gap-2">
-                 <button data-action="admin-add-modal" class="text-gray-300 bg-gray-800 px-3 py-1.5 rounded flex items-center gap-1 text-sm border border-gray-700 hover:bg-gray-700 transition">
-                   <i data-lucide="user-plus" class="w-4 h-4 text-amber-500"></i> إضافة عميل مباشر
-                 </button>
                  <button onclick="copyToClipboard('${generalBookingLink}')" class="text-amber-500 bg-amber-500/10 px-3 py-1.5 rounded flex items-center gap-1 text-sm border border-amber-500/20 hover:bg-amber-500 hover:text-gray-900 transition font-bold">
                    <i data-lucide="link" class="w-4 h-4"></i> نسخ رابط الحجز
                  </button>
                </div>
             </div>
             
-            <div id="quick-add-area" class="hidden bg-gray-800 p-4 border-x border-gray-800">
-               <div class="flex flex-col sm:flex-row gap-2">
-                 <input type="text" id="admin-add-name" placeholder="اسم العميل..." class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm outline-none">
-                 <input type="tel" id="admin-add-phone" placeholder="رقم الهاتف..." class="flex-1 bg-gray-900 border border-gray-700 rounded px-3 py-2 text-white text-sm outline-none" dir="ltr">
-                 <button data-action="admin-add-customer" class="bg-amber-500 hover:bg-amber-400 text-gray-900 font-bold px-4 py-2 rounded text-sm transition">إضافة للدور</button>
-               </div>
-            </div>
-
             <div class="bg-gray-950 p-4 border border-gray-800 overflow-y-auto pr-2 custom-scrollbar flex-1 rounded-b-2xl shadow-inner">
               ${queueHTML}
             </div>
@@ -804,6 +863,7 @@
         </div>
       `;
       lucide.createIcons();
+      updateBookingTimes(); // Update time options for admin add
     };
 
     const renderCustomerBooking = () => {
@@ -811,19 +871,41 @@
       const isOpen = state.shopState.isOpen;
       const today = new Date().toISOString().split('T')[0];
       const isReturning = state.customerRecord && state.customerRecord.visitCount > 0;
+      const waitingCount = state.queue.filter(q => q.status === 'waiting').length;
       
       const showForm = !isReturning || state.showNewBookingForm;
 
       let contentHTML = getGalleryHTML(); // Prepend Gallery Slider
 
-      if (!isOpen) {
-        contentHTML += `
-          <div class="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl flex items-center gap-3 animate-pulse mb-6">
-            <i data-lucide="store" class="w-6 h-6"></i>
-            <p><strong>عذراً، الصالون مغلق حالياً.</strong> يمكنك تصفح الخدمات وسيكون بإمكانك الحجز فور افتتاح الصالون.</p>
-          </div>
-        `;
-      }
+      // Banner for Shop Status and Queue Count
+      const statusColor = isOpen ? 'bg-green-500/20 text-green-500 border-green-500/30' : 'bg-red-500/20 text-red-500 border-red-500/30';
+      const statusText = isOpen ? 'مفتوح الآن' : 'مغلق حالياً';
+      const workingH = state.shopState.workingHours || {start: '10:00', end: '23:00'};
+      
+      contentHTML += `
+         <div class="bg-gray-800/60 p-5 rounded-2xl border border-gray-700 mb-6 flex flex-col md:flex-row justify-between items-center gap-4 shadow-lg animate-fade-in-down">
+            <div class="flex items-center justify-between w-full md:w-auto gap-6 md:gap-8 border-b md:border-b-0 border-gray-700 pb-4 md:pb-0">
+               <div class="text-center">
+                  <p class="text-xs text-gray-400 mb-1.5 font-bold">حالة الصالون</p>
+                  <p class="font-black text-sm px-3 py-1 rounded-lg border ${statusColor}">
+                     ${statusText}
+                  </p>
+               </div>
+               <div class="hidden md:block w-px h-10 bg-gray-700"></div>
+               <div class="text-center">
+                  <p class="text-xs text-gray-400 mb-1.5 font-bold">أوقات العمل</p>
+                  <p class="font-bold text-white text-sm bg-gray-900 px-3 py-1 rounded-lg border border-gray-700" dir="ltr">${workingH.start} - ${workingH.end}</p>
+               </div>
+            </div>
+            <div class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl flex-1 w-full md:max-w-xs text-center">
+               <p class="text-amber-500 font-bold text-sm flex items-center justify-center gap-2 mb-1">
+                  <i data-lucide="users" class="w-4 h-4"></i>
+                  العملاء في الانتظار: <span class="text-xl font-black bg-amber-500 text-gray-900 px-2 rounded ml-1">${waitingCount}</span>
+               </p>
+               <p class="text-gray-400 text-xs">يرجى اختيار الوقت المناسب لحضورك لتفادي الانتظار الطويل.</p>
+            </div>
+         </div>
+      `;
 
       if (isReturning && !showForm) {
          const lastV = new Date(state.customerRecord.lastVisitDate);
@@ -883,21 +965,21 @@
             <!-- تحديد الموعد -->
             <div class="mb-8 bg-gray-800/40 p-5 rounded-2xl border border-amber-500/20">
               <h3 class="text-lg font-bold text-amber-500 mb-4 flex items-center gap-2">
-                <i data-lucide="calendar" class="w-5 h-5"></i> متى ترغب في الحجز؟ <span class="text-red-500">*</span>
+                <i data-lucide="calendar" class="w-5 h-5"></i> متى ترغب في الحضور؟ <span class="text-red-500">*</span>
               </h3>
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label class="block text-gray-400 text-sm mb-2">تاريخ الحجز</label>
-                  <input type="date" id="input-booking-date" value="${state.tempBookingDate || ''}" min="${today}" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none transition" required>
+                  <label class="block text-gray-400 text-sm mb-2 font-bold">تاريخ الحجز</label>
+                  <input type="date" id="input-booking-date" value="${state.tempBookingDate || today}" min="${today}" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none transition" required>
                 </div>
                 <div>
-                  <label class="block text-gray-400 text-sm mb-2">وقت الحضور المتاح</label>
-                  <select id="input-booking-time" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none transition" ${!state.tempBookingDate ? 'disabled' : ''} required>
-                    <option value="">اختر التاريخ أولاً لترى الأوقات المتاحة...</option>
+                  <label class="block text-gray-400 text-sm mb-2 font-bold">وقت الحضور المتاح</label>
+                  <select id="input-booking-time" class="w-full bg-gray-900 border border-gray-700 rounded-xl p-3 text-white focus:border-amber-500 outline-none transition cursor-pointer" required>
+                    <!-- Options populated by JS -->
                   </select>
                 </div>
               </div>
-              <p class="text-xs text-gray-500 mt-3"><i data-lucide="info" class="w-3 h-3 inline"></i> يتم عرض الأوقات المتاحة فقط لعدم الانتظار. المواعيد المحجوزة مسبقاً غير ظاهرة.</p>
+              <p class="text-xs text-gray-500 mt-3"><i data-lucide="info" class="w-3 h-3 inline"></i> المواعيد المحجوزة مسبقاً من قِبل عملاء آخرين مخفية تلقائياً لراحتك.</p>
             </div>
 
             <div class="mb-8">
@@ -925,7 +1007,7 @@
             </div>
 
             <button data-action="book-ticket" ${!isOpen ? 'disabled' : ''} class="w-full py-4 rounded-xl font-bold text-xl transition shadow-lg ${isOpen ? 'bg-amber-500 hover:bg-amber-400 text-gray-900 shadow-[0_0_20px_rgba(245,158,11,0.4)]' : 'bg-gray-700 text-gray-500 cursor-not-allowed'}">
-              ${isOpen ? 'تأكيد الحجز وإصدار الرقم' : 'الصالون مغلق'}
+              ${isOpen ? 'تأكيد الحجز وإصدار الرقم' : 'الصالون مغلق حالياً'}
             </button>
           </div>
          `;
@@ -935,6 +1017,7 @@
       lucide.createIcons();
       initSlider();
       if(showForm) {
+         if(!state.tempBookingDate) state.tempBookingDate = today; // ensure date is set
          setTimeout(updateBookingTimes, 0); 
       }
     };
@@ -1146,14 +1229,51 @@
       const action = target.getAttribute('data-action');
       const shopRef = doc(db, 'artifacts', appId, 'public', 'data', 'shop', 'info');
 
-      // Add Gallery Image
-      if (action === 'add-gallery') {
-         const urlInput = document.getElementById('input-new-gallery').value.trim();
-         if (urlInput) {
-            const currentGallery = state.shopState.gallery || [];
-            await updateDoc(shopRef, { gallery: [...currentGallery, urlInput] });
-            document.getElementById('input-new-gallery').value = '';
-         }
+      // Add Gallery Image (Using Base64 compression to bypass Storage rules & limits)
+      if (action === 'upload-gallery') {
+         const fileInput = document.getElementById('input-new-gallery-file');
+         const file = fileInput.files[0];
+         if (!file) return alert("برجاء اختيار صورة من جهازك أولاً.");
+         
+         const progressEl = document.getElementById('upload-progress');
+         if(progressEl) progressEl.classList.remove('hidden');
+
+         const reader = new FileReader();
+         reader.onload = (e) => {
+             const img = new Image();
+             img.onload = async () => {
+                 const canvas = document.createElement('canvas');
+                 let width = img.width;
+                 let height = img.height;
+                 const MAX_WIDTH = 800; // Limit width to keep Base64 small
+                 
+                 if (width > MAX_WIDTH) {
+                     height = Math.round(height * (MAX_WIDTH / width));
+                     width = MAX_WIDTH;
+                 }
+                 
+                 canvas.width = width;
+                 canvas.height = height;
+                 const ctx = canvas.getContext('2d');
+                 ctx.drawImage(img, 0, 0, width, height);
+                 
+                 const dataUrl = canvas.toDataURL('image/jpeg', 0.6); // Compress 
+                 
+                 try {
+                     const currentGallery = state.shopState.gallery || [];
+                     await updateDoc(shopRef, { gallery: [...currentGallery, dataUrl] });
+                     
+                     fileInput.value = '';
+                     if(progressEl) progressEl.classList.add('hidden');
+                 } catch(error) {
+                     console.error("Firestore upload error", error);
+                     if(progressEl) progressEl.classList.add('hidden');
+                     alert("حدث خطأ أثناء حفظ الصورة. تأكد من حجم الصورة.");
+                 }
+             };
+             img.src = e.target.result;
+         };
+         reader.readAsDataURL(file);
       }
       
       // Remove Gallery Image
@@ -1208,7 +1328,7 @@
            if(waitingQueue.length > 0) {
               const nextCust = waitingQueue[0];
               await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', nextCust.id), { status: 'active', adminMessage: 'تفضل، دورك الآن!' });
-              await updateDoc(shopRef, { currentTicket: nextCust.ticketNumber, timerEndTime: Date.now() + (30 * 60 * 1000) }); // Default 30 min start
+              await updateDoc(shopRef, { currentTicket: nextCust.ticketNumber, timerEndTime: Date.now() + (30 * 60 * 1000) }); 
            } else {
               await updateDoc(shopRef, { timerEndTime: 0, currentTicket: 0 });
               alert("تم الإنهاء، ولا يوجد عملاء في الانتظار.");
@@ -1217,6 +1337,9 @@
       }
 
       if (action === 'toggle-details') {
+          // Prevent toggle if a button inside the div was clicked
+          if (e.target.closest('button[data-action]')) return;
+
           const id = target.getAttribute('data-id');
           const phone = target.getAttribute('data-phone');
           const detailsDiv = document.getElementById(`details-${id}`);
@@ -1256,9 +1379,7 @@
          const currentName = target.getAttribute('data-current-name');
          const newName = prompt("تعديل اسم العميل:", currentName);
          if (newName && newName.trim() !== "") {
-            // Update in queue
             await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'queue', id), { name: newName.trim() });
-            // Update in customers record if possible
             if (phone && phone !== 'بدون رقم') {
                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'customers', phone), { name: newName.trim() }).catch(() => {});
             }
@@ -1284,11 +1405,39 @@
          }
       }
 
+      if (action === 'admin-toggle-service') {
+         const val = target.getAttribute('data-val');
+         if (state.adminAdd.services.includes(val)) state.adminAdd.services = state.adminAdd.services.filter(s => s !== val);
+         else state.adminAdd.services.push(val);
+         renderAdminPanel();
+      }
+      
+      if (action === 'admin-toggle-product') {
+         const val = target.getAttribute('data-val');
+         if (state.adminAdd.products.includes(val)) state.adminAdd.products = state.adminAdd.products.filter(p => p !== val);
+         else state.adminAdd.products.push(val);
+         renderAdminPanel();
+      }
+
       if (action === 'admin-add-customer') {
         const nameInput = document.getElementById('admin-add-name').value.trim();
         const phoneInput = document.getElementById('admin-add-phone').value.trim() || 'بدون رقم';
-        
+        const dateInput = document.getElementById('admin-add-date').value;
+        const timeInput = document.getElementById('admin-add-time').value;
+
         if (!nameInput) return alert("برجاء إدخال اسم العميل");
+        
+        const conflictExists = state.queue.find(q => 
+            q.bookingDate === dateInput && 
+            q.bookingTime === timeInput && 
+            (q.status === 'waiting' || q.status === 'active')
+        );
+
+        if (conflictExists && dateInput && timeInput) {
+            if(!confirm("تحذير: هذا الموعد محجوز مسبقاً من قِبل عميل آخر! هل تريد إضافته على أي حال؟")) {
+               return;
+            }
+        }
         
         const ticketNum = state.shopState.nextTicketToIssue;
         await updateDoc(shopRef, { nextTicketToIssue: ticketNum + 1 });
@@ -1299,15 +1448,27 @@
           status: 'waiting',
           adminMessage: null,
           presenceStatus: 'here', 
-          bookingDate: '',
-          bookingTime: '',
-          selectedServices: [],
-          selectedProducts: [],
+          bookingDate: dateInput,
+          bookingTime: timeInput,
+          selectedServices: state.adminAdd.services,
+          selectedProducts: state.adminAdd.products,
           timestamp: serverTimestamp()
         });
-        document.getElementById('admin-add-name').value = '';
-        document.getElementById('admin-add-phone').value = '';
-        document.getElementById('quick-add-area').classList.add('hidden');
+
+        if (phoneInput !== 'بدون رقم') {
+            const custRef = doc(db, 'artifacts', appId, 'public', 'data', 'customers', phoneInput);
+            const custSnap = await getDoc(custRef);
+            if (!custSnap.exists()) {
+                await setDoc(custRef, {
+                    phone: phoneInput,
+                    name: nameInput,
+                    visitCount: 0, 
+                    lastVisitDate: new Date().toISOString()
+                });
+            }
+        }
+
+        state.adminAdd = { name: '', phone: '', date: '', time: '', services: [], products: [] };
         alert(`تم إضافة العميل وإعطائه رقم دور: ${ticketNum}`);
       }
 
@@ -1386,7 +1547,6 @@
         renderCustomerBooking();
       }
       
-      // CONFIRM BOOKING
       if (action === 'book-ticket') {
         if (!state.customerPhone || !state.customerName) return;
         
