@@ -588,16 +588,17 @@
               
               <div class="p-4 cursor-pointer hover:bg-gray-700/30 transition" data-action="toggle-details" data-id="${q.id}" data-phone="${q.phone}">
                 <div class="flex flex-col md:flex-row justify-between md:items-start gap-4">
-                  <div class="flex-1 pointer-events-none">
+                  <div class="flex-1">
                     ${bookingTimeDisplay}
-                    <div class="flex items-center gap-3 mb-2 pointer-events-auto">
+                    <div class="flex items-center gap-3 mb-2">
                       <span class="bg-amber-500 text-gray-900 font-black w-10 h-10 rounded-full flex items-center justify-center text-lg shadow-md shrink-0">
                         ${q.ticketNumber}
                       </span>
                       <div>
                         <div class="flex items-center gap-2">
                           <span class="font-bold text-lg text-white">${customerNameDisplay}</span>
-                          <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition" title="تعديل الاسم">
+                          <!-- The click event should not bubble up and trigger toggle-details -->
+                          <button data-action="edit-customer-name" data-id="${q.id}" data-phone="${q.phone}" data-current-name="${customerNameDisplay}" class="text-gray-400 hover:text-amber-500 transition relative z-10" title="تعديل الاسم" onclick="event.stopPropagation();">
                             <i data-lucide="edit-2" class="w-4 h-4"></i>
                           </button>
                           ${presenceBadge}
@@ -676,7 +677,7 @@
                </div>
                <div class="text-gray-500 text-xs flex flex-col items-end gap-1">
                  <span>رقم: ${q.ticketNumber}</span>
-                 <button data-action="delete-customer" data-id="${q.id}" class="text-gray-600 hover:text-red-400 transition" title="حذف السجل"><i data-lucide="trash" class="w-4 h-4"></i></button>
+                 <button data-action="delete-customer" data-id="${q.id}" class="text-gray-600 hover:text-red-400 transition relative z-10" title="حذف السجل" onclick="event.stopPropagation();"><i data-lucide="trash" class="w-4 h-4"></i></button>
                </div>
             </div>
             `;
@@ -736,7 +737,7 @@
                      <div class="relative group rounded-xl overflow-hidden border border-gray-700 aspect-video">
                        <img src="${url}" class="w-full h-full object-cover" />
                        <div class="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full">
+                         <button data-action="remove-gallery" data-val="${url}" class="text-red-400 hover:text-red-300 bg-red-500/20 p-2 rounded-full relative z-10">
                            <i data-lucide="trash-2" class="w-5 h-5"></i>
                          </button>
                        </div>
